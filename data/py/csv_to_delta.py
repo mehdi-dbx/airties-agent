@@ -15,7 +15,7 @@ load_dotenv(ROOT / ".env.local", override=True)
 
 TERMINAL_STATES = frozenset({"SUCCEEDED", "FAILED", "CANCELED", "CLOSED"})
 
-CSV_DIR = Path(__file__).resolve().parent / "csv"
+CSV_DIR = Path(__file__).resolve().parent.parent / "csv"
 
 
 def _wait_for_statement(w, wh_id: str, statement: str) -> None:
