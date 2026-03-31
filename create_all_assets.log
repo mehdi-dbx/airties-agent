@@ -1,0 +1,74 @@
+=== create_all_assets started 2026-03-31T10:35:40.993584 ===
+
+═══ create_catalog_schema (1/8) ═══
+Running: uv run python data/init/create_catalog_schema.py
+stderr: Traceback (most recent call last):
+  File "/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_catalog_schema.py", line 39, in <module>
+    main()
+  File "/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_catalog_schema.py", line 19, in main
+    from data.csv_to_delta import _wait_for_statement
+ModuleNotFoundError: No module named 'data.csv_to_delta'
+  ✗ create_catalog_schema (exit 1): Traceback (most recent call last):
+  File "/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_catalog_schema.py", line 39, in <module>
+    main()
+  File "/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_catalog_schema.py", line 19, in main
+    from data.csv_to_delta import _wait_for_statement
+ModuleNotFoundError: No module named 'data.csv_to_delta'
+Aborting after create_catalog_schema failed
+=== create_all_assets started 2026-03-31T10:37:44.118573 ===
+
+═══ create_catalog_schema (1/8) ═══
+Running: uv run python data/init/create_catalog_schema.py
+stderr: Traceback (most recent call last):
+  File "/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_catalog_schema.py", line 39, in <module>
+    main()
+  File "/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_catalog_schema.py", line 19, in main
+    from data.csv_to_delta import _wait_for_statement
+ModuleNotFoundError: No module named 'data.csv_to_delta'
+  ✗ create_catalog_schema (exit 1): Traceback (most recent call last):
+  File "/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_catalog_schema.py", line 39, in <module>
+    main()
+  File "/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_catalog_schema.py", line 19, in main
+    from data.csv_to_delta import _wait_for_statement
+ModuleNotFoundError: No module named 'data.csv_to_delta'
+Aborting after create_catalog_schema failed
+=== create_all_assets started 2026-03-31T10:42:49.243235 ===
+
+═══ create_catalog_schema (1/8) ═══
+Running: uv run python data/init/create_catalog_schema.py
+Catalog vibe ready (created or already existed)
+Schema vibe.main ready (created or already existed)
+OK create_catalog_schema
+
+═══ run_sql data/init/create_checkin_metrics.sql (2/8) ═══
+Running: uv run python data/run_sql.py data/init/create_checkin_metrics.sql
+stderr: /Users/mehdi.lamrani/code/code/agent-forge/.venv/bin/python3: can't open file '/Users/mehdi.lamrani/code/code/agent-forge/data/run_sql.py': [Errno 2] No such file or directory
+  ✗ run_sql data/init/create_checkin_metrics.sql (exit 2): /Users/mehdi.lamrani/code/code/agent-forge/.venv/bin/python3: can't open file '/Users/mehdi.lamrani/code/code/agent-forge/data/run_sql.py': [Errno 2] No such file or directory
+=== create_all_assets started 2026-03-31T10:46:40.084894 ===
+
+═══ create_catalog_schema (1/8) ═══
+Running: uv run python data/init/create_catalog_schema.py
+Catalog vibe ready (created or already existed)
+Schema vibe.main ready (created or already existed)
+OK create_catalog_schema
+
+═══ run_sql data/init/create_checkin_metrics.sql (2/8) ═══
+Running: uv run python data/run_sql.py data/init/create_checkin_metrics.sql
+stderr: /Users/mehdi.lamrani/code/code/agent-forge/.venv/bin/python3: can't open file '/Users/mehdi.lamrani/code/code/agent-forge/data/run_sql.py': [Errno 2] No such file or directory
+  ✗ run_sql data/init/create_checkin_metrics.sql (exit 2): /Users/mehdi.lamrani/code/code/agent-forge/.venv/bin/python3: can't open file '/Users/mehdi.lamrani/code/code/agent-forge/data/run_sql.py': [Errno 2] No such file or directory
+=== create_all_assets started 2026-03-31T11:01:43.491526 ===
+
+═══ create_catalog_schema (1/4) ═══
+Running: uv run python data/init/create_catalog_schema.py
+Catalog vibe ready (created or already existed)
+Schema vibe.main ready (created or already existed)
+OK create_catalog_schema
+
+═══ run_sql data/init/create_flights.sql (2/4) ═══
+Running: uv run python data/py/run_sql.py data/init/create_flights.sql
+OK run_sql data/init/create_flights.sql
+
+═══ create_genie_space (3/4) ═══
+Running: uv run python data/init/create_genie_space.py
+stderr: /Users/mehdi.lamrani/code/code/agent-forge/.venv/bin/python3: can't open file '/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_genie_space.py': [Errno 2] No such file or directory
+  ✗ create_genie_space (exit 2): /Users/mehdi.lamrani/code/code/agent-forge/.venv/bin/python3: can't open file '/Users/mehdi.lamrani/code/code/agent-forge/data/init/create_genie_space.py': [Errno 2] No such file or directory
