@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 os.chdir(ROOT)
-LOG_FILE = ROOT / "create_all_procedures.log"
+LOG_FILE = ROOT / "logs" / "create_all_procedures.log"
 
 R, G, Y, B, M, C, W = "\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m", "\033[36m", "\033[0m"
 BOLD = "\033[1m"

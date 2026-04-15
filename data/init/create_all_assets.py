@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 os.chdir(ROOT)
-LOG_FILE = ROOT / "create_all_assets.log"
+LOG_FILE = ROOT / "logs" / "create_all_assets.log"
 
 def _get_init_sql() -> list[str]:
     """Derive init SQL paths from data/csv/*.csv — one create_<table>.sql per CSV."""

@@ -63,20 +63,22 @@ if [[ ! -x "$PYTHON" ]]; then
 fi
 
 # Verify backend imports before starting (fail fast on SyntaxError etc.)
-"$PYTHON" -c "from agent.start_server import app" || { echo "Backend import failed. Check backend.log."; exit 1; }
+"$PYTHON" -c "from agent.start_server import app" || { echo "Backend import failed. Check logs/backend.log."; exit 1; }
+
+mkdir -p "$ROOT/logs"
 
 # Start each process, capture the subshell PID
-"$PYTHON" -m uvicorn agent.start_server:app --host 0.0.0.0 --port 8000 --reload >> "$ROOT/backend.log" 2>&1 &
+"$PYTHON" -m uvicorn agent.start_server:app --host 0.0.0.0 --port 8000 --reload >> "$ROOT/logs/backend.log" 2>&1 &
 BACKEND_PID=$!
 wait_for "http://127.0.0.1:8000/health" "Backend" || true
 
 env CHAT_APP_PORT=3001 PORT=3001 API_PROXY="$API_PROXY" LOG_SSE_EVENTS="${LOG_SSE_EVENTS:-true}" \
   bash -c 'cd e2e-chatbot-app-next && npm run dev:built --workspace=@databricks/chatbot-server' \
-  >> "$ROOT/node.log" 2>&1 &
+  >> "$ROOT/logs/node.log" 2>&1 &
 NODE_PID=$!
 wait_for "http://127.0.0.1:3001/ping" "Node API" || true
 
-bash -c 'cd e2e-chatbot-app-next && npm run dev:client' >> "$ROOT/frontend.log" 2>&1 &
+bash -c 'cd e2e-chatbot-app-next && npm run dev:client' >> "$ROOT/logs/frontend.log" 2>&1 &
 FRONTEND_PID=$!
 sleep 5
 
