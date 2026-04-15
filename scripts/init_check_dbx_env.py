@@ -1105,6 +1105,15 @@ def load_env_for_key(key: str, value: str) -> None:
     os.environ[key] = value
 
 
+_SECRET_KEYS = {"DATABRICKS_TOKEN", "AGENT_MODEL_TOKEN"}
+
+def _redact(val: str) -> str:
+    """Mask a secret value for display: show first 6 + last 4 chars."""
+    if len(val) > 10:
+        return val[:6] + "..." + val[-4:]
+    return "***"
+
+
 def run_resource(
     key: str,
     label: str,
@@ -1128,17 +1137,19 @@ def run_resource(
     if cur:
         load_env_for_key(key, cur)
         ok, msg = verify_fn()
+        display = _redact(cur) if key in _SECRET_KEYS else f"{cur[:50]}{'...' if len(cur) > 50 else ''}"
         if ok:
-            print(f"  {OK} Active: {C}{cur[:50]}{'...' if len(cur) > 50 else ''}{W} {G}({msg}){W}")
+            print(f"  {OK} Active: {C}{display}{W} {G}({msg}){W}")
         else:
-            print(f"  {FAIL} Active: {C}{cur[:50]}{'...' if len(cur) > 50 else ''}{W} {R}({msg}){W}")
+            print(f"  {FAIL} Active: {C}{display}{W} {R}({msg}){W}")
     else:
         print(f"  {WARN} Not configured{W}")
 
     if inact:
         print(f"  {DIM}Inactive:{W}")
         for i, (_, val) in enumerate(inact, 1):
-            print(f"    {DIM}[{i}] {val[:50]}{'...' if len(val) > 50 else ''}{W}")
+            display = _redact(val) if key in _SECRET_KEYS else f"{val[:50]}{'...' if len(val) > 50 else ''}"
+            print(f"    {DIM}[{i}] {display}{W}")
 
     ADD_NEW_CATALOG = "add new catalog (this will create all related assets)"
     CREATE_ASSETS_NOW = "create all assets now"
@@ -1297,6 +1308,93 @@ def run_resource(
     return True
 
 
+def verify_ka() -> tuple[bool, str]:
+    """Check that PROJECT_KA_PASSENGERS is set and the KA is ACTIVE."""
+    from dotenv import load_dotenv
+    load_dotenv(ENV_FILE, override=True)
+    endpoint_name = os.environ.get("PROJECT_KA_PASSENGERS", "").strip()
+    if not endpoint_name:
+        return False, "PROJECT_KA_PASSENGERS not set"
+    try:
+        from databricks.sdk import WorkspaceClient
+        w = WorkspaceClient()
+        for ka in w.knowledge_assistants.list_knowledge_assistants():
+            if (ka.endpoint_name or "") == endpoint_name:
+                st = ka.state
+                raw = (st.value if hasattr(st, "value") else str(st)) if st else "UNKNOWN"
+                if raw == "ACTIVE":
+                    return True, f"ACTIVE ({endpoint_name})"
+                return False, f"{raw} ({endpoint_name})"
+        return False, f"endpoint not found: {endpoint_name}"
+    except Exception as e:
+        return False, str(e)
+
+
+def run_resource_ka() -> bool:
+    """Interactive setup for the passenger rights Knowledge Assistant."""
+    from dotenv import load_dotenv
+    load_dotenv(ENV_FILE, override=True)
+
+    section("Knowledge Assistants (data/pdf/)")
+
+    pdfs = sorted((ROOT / "data" / "pdf").glob("*.pdf"))
+    if pdfs:
+        print(f"  {C}PDFs in data/pdf/:{W}")
+        for p in pdfs:
+            print(f"    {B}+{W} {p.name}")
+    else:
+        print(f"  {WARN} No PDF files found in data/pdf/{W}")
+
+    ok, msg = verify_ka()
+    if ok:
+        print(f"  {OK} KA is ACTIVE: {C}{msg}{W}")
+        choices = ["keep", "recreate"]
+    else:
+        print(f"  {WARN} {msg}{W}")
+        choices = ["provision"]
+
+    print(f"\n  {C}Action?{W}")
+    for i, c in enumerate(choices, 1):
+        print(f"    {B}[{i}]{W} {c}")
+    try:
+        raw = input(f"  Choice (1-{len(choices)}): ").strip()
+        idx = int(raw)
+        if 1 <= idx <= len(choices):
+            choice = choices[idx - 1]
+        else:
+            choice = choices[0]
+    except KeyboardInterrupt:
+        print(f"\n\n  {WARN} Interrupted — exiting.{W}\n")
+        sys.exit(130)
+    except (ValueError, EOFError):
+        choice = choices[0]
+
+    if choice == "keep":
+        return True
+
+    print(f"\n  {B}Provisioning Knowledge Assistant...{W}\n")
+
+    for label, cmd in [
+        ("Create UC volume", ["uv", "run", "python", "scripts/ka/create_volume.py"]),
+        ("Upload PDFs", ["uv", "run", "python", "scripts/ka/upload_pdfs.py"]),
+        ("Create KA", ["uv", "run", "python", "scripts/ka/create_kas_from_yml.py", "--skip-existing"]),
+    ]:
+        print(f"  {C}→ {label}...{W}")
+        rc = subprocess.call(cmd, cwd=ROOT)
+        if rc != 0:
+            print(f"  {FAIL} {label} failed (exit {rc}){W}\n")
+            return False
+        print()
+
+    load_dotenv(ENV_FILE, override=True)
+    ok, msg = verify_ka()
+    if ok:
+        print(f"  {OK} {G}Knowledge Assistant ready: {msg}{W}\n")
+    else:
+        print(f"  {WARN} KA provisioned but verify returned: {msg}{W}\n")
+    return True
+
+
 def run_check_only() -> None:
     """Quick check of all resources (non-interactive)."""
     from dotenv import load_dotenv
@@ -1370,6 +1468,12 @@ def run_check_only() -> None:
             print(f"  \\-- {FAIL} {e}{W}")
             all_ok = False
             uc_failed = True
+
+    section("Knowledge Assistants")
+    ok, msg = verify_ka()
+    print(f"  {OK if ok else FAIL} PROJECT_KA_PASSENGERS {C}({msg}){W}")
+    if not ok:
+        all_ok = False
 
     section("Genie")
     ok, msg = verify_genie()
@@ -1573,6 +1677,7 @@ def main() -> None:
         print(f"\n\n  {WARN} Interrupted — exiting.{W}\n")
         sys.exit(130)
 
+    run_resource_ka()
     run_resource_genie()
     run_resource_mlflow()
     run_resource_model_endpoint()
