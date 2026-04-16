@@ -35,7 +35,7 @@ OK, FAIL, WARN = f"{G}✓{W}", f"{R}✗{W}", f"{Y}⚠{W}"
 FIX_FIRST_MSG = f"\n  {WARN} This needs to be fixed first before moving forward with the other configurations.{W}\n"
 
 FM_WORKSPACES = [
-    ("AWS field eng",   "http://e2-demo-field-eng.cloud.databricks.com"),
+    ("AWS field eng",   "https://e2-demo-field-eng.cloud.databricks.com"),
     ("Azure field eng", "https://adb-984752964297111.11.azuredatabricks.net"),
 ]
 FM_MODEL = "databricks-claude-sonnet-4-6"
@@ -144,10 +144,12 @@ def _read_choice(prompt: str, n: int) -> int | None:
         while True:
             ch = os.read(fd, 1).decode("utf-8", errors="ignore")  # bypass Python IO buffer
             if ch == "\x1b":                    # ESC
-                print(f" {DIM}(cancelled){W}")
+                sys.stdout.write(f" {DIM}(cancelled){W}\r\n")
+                sys.stdout.flush()
                 return None
             if ch in ("\r", "\n"):              # Enter
-                print()
+                sys.stdout.write("\r\n")
+                sys.stdout.flush()
                 try:
                     idx = int(buf)
                     return idx if 1 <= idx <= n else None
@@ -175,7 +177,8 @@ def _read_line(prompt: str) -> str | None:
     import termios
     import tty
 
-    print(prompt, end="", flush=True)
+    sys.stdout.write(f"\n {prompt}")
+    sys.stdout.flush()
 
     if not sys.stdin.isatty():
         try:
@@ -191,10 +194,12 @@ def _read_line(prompt: str) -> str | None:
         while True:
             ch = os.read(fd, 1).decode("utf-8", errors="ignore")
             if ch == "\x1b":                    # ESC
-                print(f" {DIM}(cancelled){W}")
+                sys.stdout.write(f" {DIM}(cancelled){W}\r\n")
+                sys.stdout.flush()
                 return None
             if ch in ("\r", "\n"):              # Enter
-                print()
+                sys.stdout.write("\r\n")
+                sys.stdout.flush()
                 return buf
             if ch in ("\x7f", "\x08"):          # Backspace
                 if buf:
@@ -231,10 +236,10 @@ def _print_inactive(inact: list[tuple[int, str]], secret: bool = False) -> None:
     """Print numbered inactive entries."""
     if not inact:
         return
-    print(f"  {DIM}Inactive:{W}")
+    print(f"  {C}Inactive:{W}")
     for i, (_, val) in enumerate(inact, 1):
         display = _redact(val) if secret else f"{val[:50]}{'...' if len(val) > 50 else ''}"
-        print(f"    {DIM}[{i}] {display}{W}")
+        print(f"    {C}[{i}]{W} {DIM}{display}{W}")
 
 
 def _activate_entry(
@@ -775,6 +780,25 @@ def list_dbx_profiles() -> list[tuple[str, bool]]:
         return []
 
 
+def _isolated_client(profile: str) -> "WorkspaceClient":
+    """Create a WorkspaceClient using only profile credentials.
+
+    Temporarily removes Databricks env vars so they don't override the
+    profile's token in the SDK auth chain (env vars take priority over
+    profile config, causing cross-workspace PAT creation to fail with 400).
+    """
+    _DBX_ENV_KEYS = [
+        "DATABRICKS_HOST", "DATABRICKS_TOKEN", "DATABRICKS_CONFIG_PROFILE",
+        "DATABRICKS_AZURE_CLIENT_ID", "DATABRICKS_AZURE_CLIENT_SECRET",
+        "DATABRICKS_AZURE_TENANT_ID", "DATABRICKS_USERNAME", "DATABRICKS_PASSWORD",
+    ]
+    saved = {k: os.environ.pop(k) for k in _DBX_ENV_KEYS if k in os.environ}
+    try:
+        return WorkspaceClient(profile=profile)
+    finally:
+        os.environ.update(saved)
+
+
 def list_dbx_profiles_with_host() -> list[tuple[str, str, bool]]:
     """Return [(name, host, valid), ...] from `databricks auth profiles` (includes host column)."""
     try:
@@ -989,20 +1013,25 @@ def _fm_invocations_url(base_host: str) -> str:
     return f"{base_host.rstrip('/')}/serving-endpoints/{FM_MODEL}/invocations"
 
 
-def _save_endpoint_and_token(key: str, cur: str, endpoint_url: str, token_val: str) -> None:
-    """Save AGENT_MODEL_ENDPOINT and AGENT_MODEL_TOKEN to .env.local."""
+def _save_endpoint_and_token(key: str, cur: str, endpoint_url: str, token_val: str | None) -> None:
+    """Save AGENT_MODEL_ENDPOINT and optionally AGENT_MODEL_TOKEN to .env.local."""
     if cur:
         comment_active_for_key(ENV_FILE, key)
     write_env_entry(ENV_FILE, key, endpoint_url)
-    comment_active_for_key(ENV_FILE, "AGENT_MODEL_TOKEN")
-    write_env_entry(ENV_FILE, "AGENT_MODEL_TOKEN", token_val)
     load_dotenv(ENV_FILE, override=True)
     load_env_for_key(key, endpoint_url)
-    load_env_for_key("AGENT_MODEL_TOKEN", token_val)
-    masked = _redact(token_val)
     print(f"  {OK} AGENT_MODEL_ENDPOINT set: {C}{endpoint_url}{W}")
-    print(f"  {OK} AGENT_MODEL_TOKEN set:     {C}{masked}{W}")
-    print(f"\n  {CONF}✓  Model endpoint and token configured.{W}")
+    if token_val:
+        comment_active_for_key(ENV_FILE, "AGENT_MODEL_TOKEN")
+        write_env_entry(ENV_FILE, "AGENT_MODEL_TOKEN", token_val)
+        load_dotenv(ENV_FILE, override=True)
+        load_env_for_key("AGENT_MODEL_TOKEN", token_val)
+        masked = _redact(token_val)
+        print(f"  {OK} AGENT_MODEL_TOKEN set:     {C}{masked}{W}")
+        print(f"\n  {CONF}✓  Model endpoint and token configured.{W}")
+    else:
+        print(f"  {WARN} AGENT_MODEL_TOKEN not set — configure it in the next step{W}")
+        print(f"\n  {CONF}✓  Model endpoint configured.{W}")
 
 
 def run_resource_model_endpoint() -> bool:
@@ -1016,12 +1045,12 @@ def run_resource_model_endpoint() -> bool:
 
     section("AGENT_MODEL_ENDPOINT")
 
-    # fevm rate-limit warning
+    # fevm detection
     current_host = os.environ.get("DATABRICKS_HOST", "").strip()
-    if "fevm" in current_host.lower():
-        print(f"\n  {BOLD}{R}⚠  This workspace ({current_host}){W}")
-        print(f"  {BOLD}{R}   applies zero rate limits to foundation models.{W}")
-        print(f"  {BOLD}{R}   Endpoints listed below will NOT work.{W}")
+    is_fevm = "fevm" in current_host.lower()
+    if is_fevm:
+        print(f"\n  {BOLD}{R}⚠  Current workspace ({current_host}) applies zero rate limits{W}")
+        print(f"  {BOLD}{R}   to foundation models — its endpoints cannot be used here.{W}")
 
     # FM workspace guidance — always shown
     print(f"\n  {C}Foundation model endpoints require one of these workspaces:{W}")
@@ -1044,14 +1073,16 @@ def run_resource_model_endpoint() -> bool:
     else:
         print(f"\n  {DIM}No matching CLI profiles — you can create one below.{W}")
 
-    endpoints = list_serving_endpoints()
-    if endpoints:
-        print()
-        for name, state in endpoints:
-            status = f"{G}[{state}]{W}" if state == "READY" else f"{DIM}[{state or '?'}]{W}"
-            print(f"  {C}Available :{W} {name} {status}")
-    else:
-        print(f"  {DIM}No serving endpoints found (or could not connect){W}")
+    endpoints: list[tuple[str, str]] = []
+    if not is_fevm:
+        endpoints = list_serving_endpoints()
+        if endpoints:
+            print()
+            for name, state in endpoints:
+                status = f"{G}[{state}]{W}" if state == "READY" else f"{DIM}[{state or '?'}]{W}"
+                print(f"  {C}Available :{W} {name} {status}")
+        else:
+            print(f"  {DIM}No serving endpoints found (or could not connect){W}")
 
     ok, msg = False, ""
     if cur:
@@ -1117,7 +1148,7 @@ def run_resource_model_endpoint() -> bool:
             endpoint_url = _fm_invocations_url(phost)
             print(f"\n  {C}Generating 7-day PAT for profile {pname} ...{W}")
             try:
-                w = WorkspaceClient(host=phost, profile=pname)
+                w = _isolated_client(pname)
                 t = w.tokens.create(comment="agent-forge FM endpoint (7-day)", lifetime_seconds=604800)
                 if not t.token_value:
                     raise ValueError("No token value returned")
@@ -1135,8 +1166,7 @@ def run_resource_model_endpoint() -> bool:
         if choice in setup_choices:
             sidx = setup_choices.index(choice)
             fm_label, fm_base_host = FM_WORKSPACES[sidx]
-            short = fm_base_host.split("//")[1].split(".")[0]
-            default_name = "fm-aws" if "field-eng" in short else "fm-azure"
+            default_name = "e2-demo-field-eng-aws" if sidx == 0 else "adb-field-eng-azure"
             print(f"\n  {C}Setting up CLI profile for {fm_label}{W}")
             print(f"  {DIM}Host: {fm_base_host}{W}")
 
@@ -1146,34 +1176,31 @@ def run_resource_model_endpoint() -> bool:
             if not pname:
                 pname = default_name
 
-            pat = _read_line(f"PAT for {fm_label}: ")
-            if pat is None:
-                continue
-            if not pat:
-                print(f"  {WARN} No PAT entered — skipped{W}")
+            print(f"\n  {C}Running: databricks auth login --host {fm_base_host} --profile {pname}{W}")
+            rc = subprocess.call(
+                ["databricks", "auth", "login", "--host", fm_base_host, "--profile", pname],
+                cwd=ROOT,
+            )
+            if rc != 0:
+                print(f"  {FAIL} databricks auth login failed (exit {rc}){W}")
                 continue
 
-            # Write to ~/.databrickscfg
-            import configparser
-            cfg_path = Path.home() / ".databrickscfg"
-            cfg = configparser.ConfigParser()
-            if cfg_path.exists():
-                cfg.read(cfg_path)
-            cfg[pname] = {"host": fm_base_host, "token": pat}
-            with open(cfg_path, "w") as fh:
-                cfg.write(fh)
-            print(f"  {OK} Profile '{pname}' written to ~/.databrickscfg{W}")
+            print(f"  {OK} Profile '{pname}' configured{W}")
 
-            # Try to generate a 7-day PAT using the new profile
+            raw = _read_line("Press Enter once browser login is complete, or ESC to cancel: ")
+            if raw is None:
+                continue
+
             endpoint_url = _fm_invocations_url(fm_base_host)
-            print(f"\n  {C}Generating 7-day PAT for {fm_label} ...{W}")
+            print(f"  {C}Generating 7-day PAT ...{W}")
+            token_val: str | None = None
             try:
-                w = WorkspaceClient(host=fm_base_host, token=pat)
+                w = _isolated_client(pname)
                 t = w.tokens.create(comment="agent-forge FM endpoint (7-day)", lifetime_seconds=604800)
-                token_val = t.token_value or pat
+                token_val = t.token_value
             except Exception as e:
-                print(f"  {WARN} Could not generate 7-day PAT ({e}) — using entered PAT{W}")
-                token_val = pat
+                print(f"  {FAIL} PAT generation failed ({type(e).__name__}: {e}){W}")
+                continue
 
             _save_endpoint_and_token(key, cur, endpoint_url, token_val)
             return True

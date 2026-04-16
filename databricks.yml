@@ -19,12 +19,12 @@ resources:
             permission: 'CAN_MANAGE'
         - name: 'sql_warehouse'
           sql_warehouse:
-            id: 'faaf94be091e498f'
+            id: '9c9a9522e0a04cda'
             permission: 'CAN_USE'
         - name: 'genie_space'
           genie_space:
-            name: 'PLACEHOLDER_GENIE_NAME'
-            space_id: '01f12ce1bdc716a9aafe66339d8cdea1'
+            name: 'agent-forge-checkin'
+            space_id: '01f13905b43612d5b9b3796bbecba177'
             permission: 'CAN_RUN'
 
 targets:

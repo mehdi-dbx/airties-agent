@@ -60,7 +60,7 @@ resources:
             permission: 'CAN_USE'
         - name: 'genie_space'
           genie_space:
-            name: 'PLACEHOLDER_GENIE_NAME'
+            name: 'agent-forge-checkin'
             space_id: 'PLACEHOLDER_GENIE_ID'
             permission: 'CAN_RUN'
         - name: 'serving_endpoint'
@@ -217,13 +217,17 @@ def main() -> int:
             )
             changes.append(("sql_warehouse.id", "DATABRICKS_WAREHOUSE_ID", wh_id))
 
-    # genie_space.space_id <- PROJECT_GENIE_CHECKIN
+    # genie_space.space_id + name <- PROJECT_GENIE_CHECKIN
     genie_id = os.environ.get("PROJECT_GENIE_CHECKIN", "").strip()
     if genie_id:
         m = re.search(r"genie_space:.*?space_id: '([^']*)'", content, re.DOTALL)
         if m and m.group(1) != genie_id:
             content = re.sub(r"space_id: '[^']*'", f"space_id: '{genie_id}'", content, count=1)
             changes.append(("genie_space.space_id", "PROJECT_GENIE_CHECKIN", genie_id))
+        # Replace placeholder name with a fixed DAB label (name is a bundle ref, not workspace-specific)
+        if "PLACEHOLDER_GENIE_NAME" in content:
+            content = content.replace("PLACEHOLDER_GENIE_NAME", "agent-forge-checkin", 1)
+            changes.append(("genie_space.name", None, "agent-forge-checkin"))
 
     # serving_endpoint <- AGENT_MODEL_ENDPOINT
     # Cross-workspace URL: remove the serving_endpoint resource (can't grant on external workspace).

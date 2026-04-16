@@ -2,7 +2,9 @@
 
 A **Databricks-native framework and accelerator** for building production-ready agentic AI solutions. Agent Forge bundles the scaffolding, patterns, and integrations Databricks builders need to go from zero to a deployed AI agent — without wiring everything from scratch.
 
-The included reference application is a flight operations AI assistant: operators chat with an agent that monitors real-time flight risk, answers questions via Genie (natural language SQL), and takes operational actions directly on Databricks data.
+The framework ships with two reference applications:
+- **Flight operations AI assistant** — operators chat with an agent that monitors real-time flight risk, queries data via Genie MCP, and takes operational actions on Databricks
+- **EU Passenger Rights Knowledge Assistant** — a YAML-configured KA backed by regulatory PDFs, with a full MLflow evaluation pipeline for testing and improving answer quality
 
 ---
 
@@ -14,6 +16,8 @@ The included reference application is a flight operations AI assistant: operator
 | **Genie MCP** | Out-of-the-box Databricks Genie integration for natural language SQL |
 | **Data layer** | Unity Catalog schema, Delta tables, stored procedures, SQL functions — all scripted |
 | **Frontend** | React + Node.js chat app with streaming, table refresh blocks, Databricks auth |
+| **Knowledge Assistants** | YAML-driven KA configs with PDF knowledge sources and shared output formatting |
+| **Evaluation** | MLflow GenAI eval pipeline with custom LLM judge scorers and two-run comparison |
 | **Deployment** | Databricks Asset Bundle (DAB) pipeline from local dev to prod app |
 | **Observability** | MLflow experiment tracking baked in from the start |
 
@@ -74,6 +78,7 @@ Everything needed to stand up the data layer from scratch.
 | `func/` | SQL query templates used by agent tools |
 | `proc/` | Stored procedure definitions |
 | `py/` | Low-level SQL runners, CSV-to-Delta loader |
+| `pdf/` | Source documents for Knowledge Assistants (e.g. EU regulation EC 261/2004) |
 
 ### `prompt/`
 | File | Purpose |
@@ -94,11 +99,33 @@ Full-stack chat application (npm monorepo).
 | `packages/ai-sdk-providers` | Databricks AI SDK integration |
 | `packages/db` | Drizzle ORM + Lakebase schema for optional chat history |
 
+### `config/`
+Configuration files shared across the framework.
+
+| Path | Contents |
+|---|---|
+| `config/ka/ka_passengers.yml` | KA definition: display name, instructions, examples for EU passenger rights |
+| `config/ka/output_format.yml` | Shared output schema — JSON with answer + verbatim source excerpts |
+| `config/.env.example` | Environment variable reference template |
+
 ### `scripts/`
 | Script | Purpose |
 |---|---|
 | `setup_dbx_env.py` | Interactive setup — configures and verifies all Databricks resources |
 | `start_local.sh` | Starts full local dev stack (backend + Node API + frontend) |
+| `create_eval_dataset.py` | Pushes the EC 261/2004 eval dataset to Databricks MLflow |
+
+### `scripts/ka/`
+Utilities for creating and managing Databricks Knowledge Assistants.
+
+| Script | Purpose |
+|---|---|
+| `create_kas_from_yml.py` | Creates KAs from `config/ka/` YAML files; substitutes UC volume paths |
+| `ka_instructions_merger.py` | Merges shared output format with KA-specific instructions |
+| `upload_pdfs.py` | Uploads PDF files to Databricks Volumes |
+| `create_volume.py` | Creates UC Volumes for storing KA source documents |
+| `list_ka_states.py` | Lists KA deployment states |
+| `delete_kas_by_display_name.py` | Deletes KAs by name |
 
 ### `deploy/`
 | File | Purpose |
@@ -106,6 +133,19 @@ Full-stack chat application (npm monorepo).
 | `deploy.sh` | Full deployment orchestrator (validate → bundle deploy → run) |
 | `sync_databricks_yml_from_env.py` | Syncs `.env.local` values into `databricks.yml` bundle config |
 | `grant/` | UC + SQL warehouse + endpoint permission scripts |
+
+### `eval/`
+MLflow GenAI evaluation pipeline for Knowledge Assistants.
+
+| File | Purpose |
+|---|---|
+| `run_eval.py` | Orchestrates two-run workflow: baseline → with guideline → compare in MLflow |
+| `predict.py` | Calls KA endpoint via HTTP, handles retries, extracts responses |
+| `scorer.py` | Custom MLflow scorer (`cites_regulation_precisely`) — uses Claude as LLM judge |
+| `eval_dataset.py` | 13 curated EC 261/2004 test questions covering edge cases |
+| `data/ec261_eval_dataset.jsonl` | JSONL source of truth for all eval questions |
+
+The two-run pattern lets you measure the impact of prompt/guideline changes objectively before pushing to production.
 
 ### `visual/`
 Architecture visualization tool (React Flow + GraphQL) for exploring the agent graph interactively.
@@ -126,6 +166,8 @@ Architecture visualization tool (React Flow + GraphQL) for exploring the agent g
 | ORM | Drizzle ORM (PostgreSQL / Lakebase) |
 | Deployment | Databricks Asset Bundle (DAB) |
 | Observability | MLflow (experiment tracking, run logging) |
+| Evaluation | MLflow GenAI eval + custom LLM judge (Claude) |
+| Knowledge Assistants | Databricks Knowledge Assistants (YAML-configured, PDF-backed) |
 | Testing | Playwright (E2E), MSW (mocking) |
 
 ---
@@ -134,7 +176,7 @@ Architecture visualization tool (React Flow + GraphQL) for exploring the agent g
 
 ### 1. Initialize
 ```bash
-python scripts/setup_dbx_env.py   # configure .env.local, verify resources
+python scripts/setup_dbx_env.py        # configure .env.local, verify resources
 python data/init/create_all_assets.py  # create UC schema, tables, Genie space, functions, procedures
 ```
 
@@ -161,6 +203,8 @@ Agent Forge is a template. To build your own agent:
 3. **Update prompts** — edit `prompt/main.prompt` and `prompt/knowledge.base` for your domain
 4. **Extend the data layer** — add SQL functions/procedures in `data/func/` and `data/proc/`
 5. **Customize the UI** — the chat app is a generic streaming UI; extend as needed
+6. **Add a Knowledge Assistant** — create a YAML in `config/ka/`, upload PDFs via `scripts/ka/`, run `create_kas_from_yml.py`
+7. **Evaluate and improve** — write test questions in `eval/data/`, run `eval/run_eval.py` to compare runs in MLflow
 
 All infrastructure (DAB, MLflow, UC schema) is config-driven via `.env.local` and `databricks.yml`.
 
@@ -173,4 +217,5 @@ All infrastructure (DAB, MLflow, UC schema) is config-driven via `.env.local` an
 | `docs/Build & setup flow.md` | Step-by-step initialization flow with folder map |
 | `e2e-chatbot-app-next/README.md` | Chat app setup, deployment, testing |
 | `e2e-chatbot-app-next/CLAUDE.md` | Claude Code context, commands, conventions for the frontend |
-| `.env.example` | All environment variable definitions |
+| `config/.env.example` | All environment variable definitions |
+| `config/ka/ka_passengers.yml` | Example KA configuration (EU passenger rights) |
