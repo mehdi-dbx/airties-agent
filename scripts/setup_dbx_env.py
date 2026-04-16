@@ -219,7 +219,8 @@ def prompt_choice(prompt: str, choices: list[str]) -> str | None:
     while True:
         print(f"\n  {C}{prompt}{W}")
         for i, c in enumerate(choices, 1):
-            print(f"    {B}[{i}]{W} {c}")
+            display = c.replace("Available : ", f"{G}Available :{W} ", 1) if c.startswith("Available : ") else c
+            print(f"    {B}[{i}]{W} {display}")
         try:
             idx = _read_choice(f"  Choice (1-{len(choices)}): ", len(choices))
         except KeyboardInterrupt:
@@ -317,7 +318,8 @@ def run_resource_warehouse() -> bool:
     while True:
         print(f"\n  {C}Action?{W}")
         for i, c in enumerate(choices, 1):
-            print(f"    {B}[{i}]{W} {c}")
+            display = c.replace("Available : ", f"{G}Available :{W} ", 1) if c.startswith("Available : ") else c
+            print(f"    {B}[{i}]{W} {display}")
         idx = _read_choice(f"  Choice (1-{len(choices)}): ", len(choices))
         if idx is None:
             return True
@@ -432,7 +434,8 @@ def run_resource_profile() -> bool:
     while True:
         print(f"\n  {C}Action?{W}")
         for i, c in enumerate(choices, 1):
-            print(f"    {B}[{i}]{W} {c}")
+            display = c.replace("Available : ", f"{G}Available :{W} ", 1) if c.startswith("Available : ") else c
+            print(f"    {B}[{i}]{W} {display}")
         idx = _read_choice(f"  Choice (1-{len(choices)}): ", len(choices))
         if idx is None:
             continue
@@ -621,7 +624,8 @@ def run_resource_host() -> bool:
     while True:
         print(f"\n  {C}Action?{W}")
         for i, c in enumerate(choices, 1):
-            print(f"    {B}[{i}]{W} {c}")
+            display = c.replace("Available : ", f"{G}Available :{W} ", 1) if c.startswith("Available : ") else c
+            print(f"    {B}[{i}]{W} {display}")
         idx = _read_choice(f"  Choice (1-{len(choices)}): ", len(choices))
         if idx is None:
             continue
@@ -1161,7 +1165,8 @@ def run_resource_model_endpoint() -> bool:
     while True:
         print(f"\n  {C}Action?{W}")
         for i, c in enumerate(choices, 1):
-            print(f"    {B}[{i}]{W} {c}")
+            display = c.replace("Available : ", f"{G}Available :{W} ", 1) if c.startswith("Available : ") else c
+            print(f"    {B}[{i}]{W} {display}")
         print(f"\n    {B}[{len(all_choices)}]{W} enter endpoint name or URL manually")
         idx = _read_choice(f"  Choice (1-{len(all_choices)}): ", len(all_choices))
         if idx is None:
@@ -1299,7 +1304,8 @@ def run_resource_model_token() -> bool:
     while True:
         print(f"\n  {C}Action?{W}")
         for i, c in enumerate(choices, 1):
-            print(f"    {B}[{i}]{W} {c}")
+            display = c.replace("Available : ", f"{G}Available :{W} ", 1) if c.startswith("Available : ") else c
+            print(f"    {B}[{i}]{W} {display}")
         idx = _read_choice(f"  Choice (1-{len(choices)}): ", len(choices))
         if idx is None:
             return True
@@ -1891,7 +1897,8 @@ def run_resource_ka() -> bool:
     while True:
         print(f"\n  {C}Action?{W}")
         for i, c in enumerate(choices, 1):
-            print(f"    {B}[{i}]{W} {c}")
+            display = c.replace("Available : ", f"{G}Available :{W} ", 1) if c.startswith("Available : ") else c
+            print(f"    {B}[{i}]{W} {display}")
         idx = _read_choice(f"  Choice (1-{len(choices)}): ", len(choices))
         if idx is None:
             return True
