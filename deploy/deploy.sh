@@ -159,27 +159,6 @@ fi
 # ── Step 4: Deploy ────────────────────────────────────────────────────────────
 section "Deploy"
 
-# ── Detect workspace switch — clear stale bundle state if host changed ─────
-_tf_state=".databricks/bundle/default/terraform/terraform.tfstate"
-if [[ -f "$_tf_state" ]]; then
-  _state_host=$(python3 -c "
-import json, sys
-d = json.load(open('$_tf_state'))
-for r in d.get('resources', []):
-  for i in r.get('instances', []):
-    for k in ('url','host'):
-      v = i.get('attributes',{}).get(k,'')
-      if 'databricks' in str(v):
-        import re; m = re.search(r'https?://[^/]+', v)
-        if m: print(m.group(0)); sys.exit(0)
-" 2>/dev/null)
-  _cur_host="${DATABRICKS_HOST%/}"
-  if [[ -n "$_state_host" && "$_state_host" != "$_cur_host" ]]; then
-    warn "Workspace changed (${DIM}${_state_host}${W} → ${C}${_cur_host}${W}) — clearing stale bundle state"
-    rm -rf .databricks/bundle/default/
-    ok "Bundle state cleared"
-  fi
-fi
 
 # ── Bind MLflow experiment if it already exists ────────────────────────────
 info "Checking MLflow experiment..."
