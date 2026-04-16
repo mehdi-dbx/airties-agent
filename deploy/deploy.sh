@@ -159,17 +159,44 @@ fi
 # ── Step 4: Deploy ────────────────────────────────────────────────────────────
 section "Deploy"
 
+# ── Detect workspace switch — clear stale bundle state if host changed ─────
+_tf_state=".databricks/bundle/default/terraform/terraform.tfstate"
+if [[ -f "$_tf_state" ]]; then
+  _state_host=$(python3 -c "
+import json, sys
+d = json.load(open('$_tf_state'))
+for r in d.get('resources', []):
+  for i in r.get('instances', []):
+    for k in ('url','host'):
+      v = i.get('attributes',{}).get(k,'')
+      if 'databricks' in str(v):
+        import re; m = re.search(r'https?://[^/]+', v)
+        if m: print(m.group(0)); sys.exit(0)
+" 2>/dev/null)
+  _cur_host="${DATABRICKS_HOST%/}"
+  if [[ -n "$_state_host" && "$_state_host" != "$_cur_host" ]]; then
+    warn "Workspace changed (${DIM}${_state_host}${W} → ${C}${_cur_host}${W}) — clearing stale bundle state"
+    rm -rf .databricks/bundle/default/
+    ok "Bundle state cleared"
+  fi
+fi
+
 # ── Bind MLflow experiment if it already exists ────────────────────────────
 info "Checking MLflow experiment..."
-_username=$(databricks current-user me --output json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('userName',''))" 2>/dev/null)
-_exp_name="/Users/${_username}/agent-forge-default"
-_exp_id=$(databricks experiments get-by-name "$_exp_name" --output json 2>/dev/null \
-  | python3 -c "import sys,json; print(json.load(sys.stdin).get('experiment',{}).get('experiment_id',''))" 2>/dev/null)
-if [[ -n "$_exp_id" ]]; then
-  databricks bundle deployment bind agent_experiment "$_exp_id" --auto-approve 2>/dev/null || true
-  ok "Experiment bound (${DIM}${_exp_id}${W})"
+_username=$(timeout 10 databricks current-user me --output json 2>/dev/null \
+  | python3 -c "import sys,json; print(json.load(sys.stdin).get('userName',''))" 2>/dev/null || true)
+if [[ -z "$_username" ]]; then
+  warn "Could not resolve current user — skipping experiment bind (will be created on deploy)"
 else
-  ok "Experiment will be created on first deploy"
+  _exp_name="/Users/${_username}/agent-forge-default"
+  _exp_id=$(timeout 10 databricks experiments get-by-name "$_exp_name" --output json 2>/dev/null \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('experiment',{}).get('experiment_id',''))" 2>/dev/null || true)
+  if [[ -n "$_exp_id" ]]; then
+    databricks bundle deployment bind agent_experiment "$_exp_id" --auto-approve 2>/dev/null || true
+    ok "Experiment bound (${DIM}${_exp_id}${W})"
+  else
+    ok "Experiment will be created on first deploy"
+  fi
 fi
 
 # ── Bind or create app ─────────────────────────────────────────────────────
