@@ -82,7 +82,7 @@ export function ChatPanelHeader({
     <header className="flex shrink-0 items-center justify-between gap-2 border-b bg-background px-3 py-2 min-h-[44px]">
       <div className="flex min-w-0 items-center gap-3">
         <span className="truncate font-semibold tracking-tight text-purple-600 text-sm">
-          Garv AI Ops Advisor
+          Agent Forge
         </span>
         <div className="flex items-center gap-2">
           <select

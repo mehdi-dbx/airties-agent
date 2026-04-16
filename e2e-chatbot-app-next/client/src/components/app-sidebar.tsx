@@ -60,7 +60,7 @@ export function AppSidebar({
                     tooltip={item.label}
                   >
                     <a
-                      href="https://airops-portal-7474657082726949.aws.databricksapps.com"
+                      href="/"
                       className="flex items-center gap-3 rounded-md px-2 py-2"
                     >
                       <Icon className="h-5 w-5" />

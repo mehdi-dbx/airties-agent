@@ -51,7 +51,7 @@ export function ChatHeader({
               AMADEUS
             </span>
             <span className="font-semibold tracking-tight text-purple-600">
-              GARV
+              AGENT FORGE
             </span>
           </div>
         </div>

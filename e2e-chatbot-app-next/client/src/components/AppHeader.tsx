@@ -39,7 +39,7 @@ export function AppHeader() {
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-600 px-3 py-1.5 font-medium text-white text-sm">
           <Sparkles className="h-4 w-4" />
-          Garv
+          Agent Forge
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
