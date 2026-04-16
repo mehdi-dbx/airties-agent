@@ -12,12 +12,12 @@ Deletes:
   - Clears PROJECT_GENIE_CHECKIN + MLFLOW_EXPERIMENT_ID from .env.local
 
 Keeps:
-  - Unity Catalog, schema, tables
+  - Unity Catalog
   - Knowledge Assistants
 
 Usage:
-  uv run python scripts/teardown.py
-  uv run python scripts/teardown.py --dry-run
+  uv run python scripts/reset_workspace.py
+  uv run python scripts/reset_workspace.py --dry-run
 """
 from __future__ import annotations
 
@@ -71,14 +71,14 @@ def _parse_sql_object_names(sql_dir: Path, kind: str) -> list[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Teardown agent-forge workspace resources")
+    parser = argparse.ArgumentParser(description="Reset agent-forge workspace resources")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be deleted without deleting")
     args = parser.parse_args()
 
     dry = args.dry_run
 
     print(f"\n{BOLD}{R}╔══════════════════════════════════════════╗{W}")
-    print(f"{BOLD}{R}║  Agent Forge  —  Teardown                ║{W}")
+    print(f"{BOLD}{R}║  Agent Forge  —  Reset Workspace         ║{W}")
     print(f"{BOLD}{R}╚══════════════════════════════════════════╝{W}")
 
     if dry:
@@ -109,7 +109,7 @@ def main() -> int:
         print(f"    {'UC procedure':30s} {C}{catalog}.{schema}.{pn}{W}")
     if bundle_dir.exists():
         print(f"    {'DAB bundle state':30s} {C}{bundle_dir.relative_to(ROOT)}{W}")
-    print(f"\n  {BOLD}Keeping:{W} Unity Catalog ({schema_spec}), Knowledge Assistants")
+    print(f"\n  {BOLD}Keeping:{W} Unity Catalog, Knowledge Assistants")
 
     if not dry:
         try:
@@ -256,7 +256,7 @@ def main() -> int:
         else:
             print(f"  {SKIP} {key} not set — skipped")
 
-    print(f"\n  {OK} {G}{BOLD}Teardown complete.{W}\n")
+    print(f"\n  {OK} {G}{BOLD}Reset complete.{W}\n")
     return 0
 
 
