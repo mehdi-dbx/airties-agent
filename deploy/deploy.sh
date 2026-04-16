@@ -159,6 +159,23 @@ fi
 # ── Step 4: Deploy ────────────────────────────────────────────────────────────
 section "Deploy"
 
+# ── Detect workspace switch — clear stale bundle state if host changed ─────
+_snap_dir=".databricks/bundle/default/sync-snapshots"
+if [[ -d "$_snap_dir" ]]; then
+  _state_host=$(python3 -c "
+import json, glob, sys
+snaps = glob.glob('$_snap_dir/*.json')
+if not snaps: sys.exit(0)
+d = json.load(open(snaps[0]))
+print(d.get('host', '').rstrip('/'))
+" 2>/dev/null)
+  _cur_host="${DATABRICKS_HOST%/}"
+  if [[ -n "$_state_host" && "$_state_host" != "$_cur_host" ]]; then
+    warn "Workspace changed (${DIM}${_state_host}${W} → ${C}${_cur_host}${W}) — clearing stale bundle state"
+    rm -rf .databricks/bundle/default/
+    ok "Bundle state cleared"
+  fi
+fi
 
 # ── Bind MLflow experiment if it already exists ────────────────────────────
 info "Checking MLflow experiment..."
