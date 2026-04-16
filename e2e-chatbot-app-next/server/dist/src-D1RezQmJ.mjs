@@ -1,9 +1,9 @@
-import os from "os";
 import fs from "fs";
-import net from "net";
-import tls from "tls";
+import os from "os";
 import crypto from "crypto";
 import Stream from "stream";
+import net from "net";
+import tls from "tls";
 import { performance } from "perf_hooks";
 
 //#region ../node_modules/postgres/src/query.js

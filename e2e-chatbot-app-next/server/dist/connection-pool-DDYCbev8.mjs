@@ -1,23 +1,7 @@
-import { a as getDatabaseUsername, n as getAuthMethodDescription, o as getDatabricksToken } from "./src-B0YMvyB0.mjs";
-import { t as src_default } from "./src-CdTKJz_q.mjs";
+import { n as __export } from "./chunk-CNPInK3f.mjs";
+import { a as getDatabaseUsername, n as getAuthMethodDescription, o as getDatabricksToken } from "./src-CfAHTh4v.mjs";
+import { t as src_default } from "./src-D1RezQmJ.mjs";
 
-//#region rolldown:runtime
-var __defProp = Object.defineProperty;
-var __export = (all, symbols) => {
-	let target = {};
-	for (var name in all) {
-		__defProp(target, name, {
-			get: all[name],
-			enumerable: true
-		});
-	}
-	if (symbols) {
-		__defProp(target, Symbol.toStringTag, { value: "Module" });
-	}
-	return target;
-};
-
-//#endregion
 //#region ../node_modules/drizzle-orm/entity.js
 const entityKind = Symbol.for("drizzle:entityKind");
 const hasOwnEntityKind = Symbol.for("drizzle:hasOwnEntityKind");
@@ -5999,7 +5983,7 @@ async function getConnectionUrl() {
 let sqlConnection = null;
 let currentToken = null;
 async function getConnection() {
-	const { default: postgres } = await import("./src-BzD_vhrI.mjs");
+	const { default: postgres } = await import("./src-2kNdEh4V.mjs");
 	const freshToken = await getDatabricksToken();
 	if (sqlConnection && currentToken !== freshToken) {
 		console.log("[DB Pool] Token changed, closing existing connection pool");

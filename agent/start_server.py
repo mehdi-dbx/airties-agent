@@ -13,8 +13,23 @@ server = AgentServer("ResponsesAgent", enable_chat_proxy=True)
 app = server.app  # noqa: F841
 
 import os
+import subprocess
+from pathlib import Path
 
 from fastapi import HTTPException
+
+_NODE_SERVER = Path(__file__).resolve().parents[1] / "e2e-chatbot-app-next" / "server" / "dist" / "index.mjs"
+
+@app.on_event("startup")
+async def start_frontend():
+    if _NODE_SERVER.exists():
+        node_env = os.environ.copy()
+        node_env["NODE_ENV"] = "production"
+        subprocess.Popen(
+            ["node", str(_NODE_SERVER)],
+            cwd=str(_NODE_SERVER.parents[2]),
+            env=node_env,
+        )
 
 from tools.sql_executor import execute_query, get_warehouse  # noqa: E402
 

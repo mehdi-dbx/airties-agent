@@ -159,6 +159,21 @@ fi
 # ── Step 4: Deploy ────────────────────────────────────────────────────────────
 section "Deploy"
 
+# ── Bind MLflow experiment if it already exists ────────────────────────────
+info "Checking MLflow experiment..."
+_username=$(databricks current-user me --output json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('userName',''))" 2>/dev/null)
+_exp_name="/Users/${_username}/agent-forge-default"
+_exp_id=$(databricks experiments get-by-name "$_exp_name" --output json 2>/dev/null \
+  | python3 -c "import sys,json; print(json.load(sys.stdin).get('experiment',{}).get('experiment_id',''))" 2>/dev/null)
+if [[ -n "$_exp_id" ]]; then
+  databricks bundle deployment bind agent_experiment "$_exp_id" --auto-approve 2>/dev/null || true
+  ok "Experiment bound (${DIM}${_exp_id}${W})"
+else
+  ok "Experiment will be created on first deploy"
+fi
+
+# ── Bind or create app ─────────────────────────────────────────────────────
+info "Checking app ${C}${DBX_APP_NAME}${W}..."
 if databricks apps get "$DBX_APP_NAME" --output json &>/dev/null; then
   info "App ${C}${DBX_APP_NAME}${W} already exists — binding to bundle..."
   databricks bundle deployment bind agent_app "$DBX_APP_NAME" --auto-approve 2>/dev/null || true
@@ -178,18 +193,44 @@ else
   ok "Bound to bundle"
 
   # Wait for compute to leave STARTING before bundle deploy can update the app
-  info "Waiting for app compute to become ready..."
-  for _i in {1..30}; do
+  _cs="STARTING"
+  _wi=0
+  while [[ "$_cs" == "STARTING" ]]; do
+    _pos=$(( _wi % (20 + 2) - 1 ))
+    _bar=""
+    for (( _j=0; _j<20; _j++ )); do
+      [[ $_j -eq $_pos ]] && _bar+="${BAR_FILL}" || _bar+="${BAR_EMPTY}"
+    done
+    printf "\r  ${DIM}[${W}${G}%s${W}${DIM}]${W} App compute starting..." "$_bar"
+    sleep 3
+    _wi=$(( _wi + 1 ))
     _cs=$(databricks apps get "$DBX_APP_NAME" --output json 2>/dev/null \
-      | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('compute_status',{}).get('state',''))" 2>/dev/null)
-    [[ "$_cs" == "ACTIVE" || "$_cs" == "STOPPED" || "$_cs" == "ERROR" ]] && break
-    sleep 10
+      | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('compute_status',{}).get('state','STARTING'))" 2>/dev/null)
   done
+  printf "\r\033[K"
   ok "App compute is ${C}${_cs}${W}"
+fi
+
+# Build client bundle if npm is available (output goes to client/dist, uploaded by bundle deploy)
+_CLIENT_DIR="$(dirname "$0")/../e2e-chatbot-app-next"
+if command -v npm &>/dev/null && [[ -f "$_CLIENT_DIR/package.json" ]]; then
+  info "Building frontend client..."
+  if (cd "$_CLIENT_DIR" && npm run build:client --silent 2>&1 | tail -3); then
+    ok "Frontend client built"
+  else
+    warn "Frontend client build failed — deploying with existing dist if present"
+  fi
 fi
 
 if ! run_step "databricks bundle deploy" databricks bundle deploy; then
   abort "Bundle deploy failed"
+fi
+
+# ── Secret scope grant must happen before bundle run (secret resolved at start time) ──
+_sp_client_id=$(databricks apps get "$DBX_APP_NAME" --output json 2>/dev/null \
+  | python3 -c "import sys,json; print(json.load(sys.stdin).get('service_principal_client_id',''))" 2>/dev/null)
+if [[ -n "$_sp_client_id" ]]; then
+  databricks secrets put-acl agent-forge "$_sp_client_id" READ 2>/dev/null || true
 fi
 
 if ! run_step "Starting app ${DBX_APP_NAME}" databricks bundle run agent_app; then
@@ -214,6 +255,27 @@ if uv run python deploy/grant/authorize_warehouse_for_app.py "$DBX_APP_NAME" 2>/
 else
   warn "authorize_warehouse_for_app failed — run manually:"
   echo -e "  ${DIM}uv run python deploy/grant/authorize_warehouse_for_app.py ${DBX_APP_NAME}${W}"
+fi
+
+info "Secret scope access..."
+_sp_client_id=$(databricks apps get "$DBX_APP_NAME" --output json 2>/dev/null \
+  | python3 -c "import sys,json; print(json.load(sys.stdin).get('service_principal_client_id',''))" 2>/dev/null)
+if [[ -n "$_sp_client_id" ]]; then
+  if databricks secrets put-acl agent-forge "$_sp_client_id" READ 2>/tmp/acl_err; then
+    ok "Secret scope ${C}agent-forge${W} → READ granted to app SP"
+  else
+    warn "Failed to grant secret scope ACL: $(cat /tmp/acl_err)"
+  fi
+  # Verify
+  _acl=$(databricks secrets list-acls agent-forge 2>/dev/null \
+    | python3 -c "import sys,json; acls=json.load(sys.stdin); print(next((a['permission'] for a in acls if a['principal']=='$_sp_client_id'), 'MISSING'))" 2>/dev/null)
+  if [[ "$_acl" == "MISSING" || -z "$_acl" ]]; then
+    warn "Secret ACL verification failed — ${C}AGENT_MODEL_TOKEN${W} may not be accessible to app"
+  else
+    ok "Verified: app SP ${DIM}${_sp_client_id}${W} has ${C}${_acl}${W} on scope ${C}agent-forge${W}"
+  fi
+else
+  warn "Could not retrieve app service principal — skipping secret scope grant"
 fi
 
 # ── Step 6: Done ──────────────────────────────────────────────────────────────

@@ -26,6 +26,11 @@ resources:
             name: 'agent-forge-checkin'
             space_id: '01f13905b43612d5b9b3796bbecba177'
             permission: 'CAN_RUN'
+        - name: 'agent_model_token'
+          secret:
+            scope: 'agent-forge'
+            key: 'AGENT_MODEL_TOKEN'
+            permission: 'READ'
 
 targets:
   dev:

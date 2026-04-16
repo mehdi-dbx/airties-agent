@@ -67,6 +67,11 @@ resources:
           serving_endpoint:
             name: 'PLACEHOLDER_ENDPOINT'
             permission: 'CAN_QUERY'
+        - name: 'agent_model_token'
+          secret:
+            scope: 'agent-forge'
+            key: 'AGENT_MODEL_TOKEN'
+            permission: 'READ'
 
 targets:
   dev:
@@ -84,7 +89,7 @@ targets:
 """
 
 APP_YAML_TEMPLATE = """\
-command: ["uv", "run", "start-app"]
+command: ["uv", "run", "python", "-c", "from agent.start_server import main; main()"]
 # Databricks Apps listens by default on port 8000
 
 env:
@@ -104,10 +109,10 @@ env:
     valueFrom: "experiment"
   - name: AGENT_MODEL_ENDPOINT
     value: "PLACEHOLDER_ENDPOINT"
-  # Secret managed by sync script — scope 'agent-forge', key 'AGENT_MODEL_TOKEN'.
-  # To push manually: databricks secrets put-secret agent-forge AGENT_MODEL_TOKEN --string-value <PAT>
+  # Secret injected via DAB resource 'agent_model_token' (scope: agent-forge, key: AGENT_MODEL_TOKEN).
+  # Managed by sync script. To push manually: databricks secrets put-secret agent-forge AGENT_MODEL_TOKEN --string-value <PAT>
   - name: AGENT_MODEL_TOKEN
-    valueFrom: "secrets/agent-forge/AGENT_MODEL_TOKEN"
+    valueFrom: "agent_model_token"
   - name: PROJECT_UNITY_CATALOG_SCHEMA
     value: "PLACEHOLDER_SCHEMA"
   - name: DATABRICKS_WAREHOUSE_ID

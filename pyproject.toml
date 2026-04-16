@@ -27,5 +27,8 @@ dependencies = [
     "flask-cors",
 ]
 
+[project.scripts]
+start-app = "agent.start_server:main"
+
 [tool.uv]
 native-tls = true

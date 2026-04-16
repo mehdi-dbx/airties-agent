@@ -1,4 +1,4 @@
-import { n as getHostDomain, r as getHostUrl } from "./src-BaHhVWSg.mjs";
+import { n as getHostDomain, r as getHostUrl } from "./src-DgB1I3Ns.mjs";
 
 //#region ../packages/auth/src/databricks-auth.ts
 let oauthToken = null;
@@ -116,12 +116,12 @@ const CLI_HOST_CACHE_DURATION = 600 * 1e3;
 */
 async function getDatabricksUserIdentity() {
 	if (cliUserIdentity && Date.now() < cliUserIdentityExpiresAt) return cliUserIdentity;
-	const { spawnWithOutput } = await import("./src-OXRy6vs5.mjs");
+	const { spawnWithOutput } = await import("./src-DF2C746g.mjs");
 	const configProfile = process.env.DATABRICKS_CONFIG_PROFILE;
 	let host = process.env.DATABRICKS_HOST;
 	if (cliHostCache && Date.now() < cliHostCacheTime + CLI_HOST_CACHE_DURATION) host = cliHostCache.replace(/^https?:\/\//, "").replace(/\/$/, "");
 	else if (host) {
-		const { getHostDomain: getHostDomain$1 } = await import("./src-OXRy6vs5.mjs");
+		const { getHostDomain: getHostDomain$1 } = await import("./src-DF2C746g.mjs");
 		host = getHostDomain$1(host);
 	}
 	const args = [
@@ -158,12 +158,12 @@ async function getDatabricksUserIdentity() {
 */
 async function getDatabricksCliToken() {
 	if (cliToken && Date.now() < cliTokenExpiresAt) return cliToken;
-	const { spawnWithOutput } = await import("./src-OXRy6vs5.mjs");
+	const { spawnWithOutput } = await import("./src-DF2C746g.mjs");
 	const configProfile = process.env.DATABRICKS_CONFIG_PROFILE;
 	let host = process.env.DATABRICKS_HOST;
 	if (cliHostCache && Date.now() < cliHostCacheTime + CLI_HOST_CACHE_DURATION) host = cliHostCache.replace(/^https?:\/\//, "").replace(/\/$/, "");
 	else if (host) {
-		const { getHostDomain: getHostDomain$1 } = await import("./src-OXRy6vs5.mjs");
+		const { getHostDomain: getHostDomain$1 } = await import("./src-DF2C746g.mjs");
 		host = getHostDomain$1(host);
 	}
 	const args = ["auth", "token"];

@@ -6,8 +6,8 @@ export default defineConfig({
   target: 'node22',
   unbundle: false,
   // Explicitly mark what should be external (everything except workspace packages)
-  external: [/^express/, /^cors/, /^dotenv/, /^zod/, /^ai/],
+  external: [],
   // Force workspace packages to be bundled
-  noExternal: [/@chat-template\/.*/],
+  noExternal: [/./],
   dts: false,
 });
