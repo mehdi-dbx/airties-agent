@@ -435,7 +435,7 @@ def run_resource_profile() -> bool:
             print(f"    {B}[{i}]{W} {c}")
         idx = _read_choice(f"  Choice (1-{len(choices)}): ", len(choices))
         if idx is None:
-            return True
+            continue
         if not (1 <= idx <= len(choices)):
             print(f"  {WARN} Invalid choice{W}")
             continue
@@ -616,81 +616,82 @@ def run_resource_host() -> bool:
         else:
             choices.insert(0, "use profile workspace")
 
-    print(f"\n  {C}Action?{W}")
-    for i, c in enumerate(choices, 1):
-        print(f"    {B}[{i}]{W} {c}")
-    idx = _read_choice(f"  Choice (1-{len(choices)}): ", len(choices))
-    if idx is None:
-        return True
-    if not (1 <= idx <= len(choices)):
-        return True
-    choice = choices[idx - 1]
+    while True:
+        print(f"\n  {C}Action?{W}")
+        for i, c in enumerate(choices, 1):
+            print(f"    {B}[{i}]{W} {c}")
+        idx = _read_choice(f"  Choice (1-{len(choices)}): ", len(choices))
+        if idx is None:
+            continue
+        if not (1 <= idx <= len(choices)):
+            continue
+        choice = choices[idx - 1]
 
-    if choice == "keep":
-        return True
-
-    if choice == "use profile workspace":
-        # Let user pick a specific profile → extract its host
-        print(f"\n  {C}Pick a profile:{W}")
-        for i, (name, valid) in enumerate(profiles, 1):
-            status = f"{G}[valid]{W}" if valid else f"{DIM}[invalid]{W}"
-            print(f"    {B}[{i}]{W} {name} {status}")
-        pidx = _read_choice(f"  Choice (1-{len(profiles)}): ", len(profiles))
-        if pidx is None or not (1 <= pidx <= len(profiles)):
+        if choice == "keep":
             return True
-        profile_name = profiles[pidx - 1][0]
 
-        # Extract host from `databricks auth env --profile <name>`
-        host = ""
-        try:
-            result = subprocess.run(
-                ["databricks", "auth", "env", "--profile", profile_name],
-                capture_output=True, text=True,
-            )
-            for line in result.stdout.splitlines():
-                if "DATABRICKS_HOST" in line:
-                    host = line.split("=", 1)[-1].strip().strip('"').strip("'")
-                    break
-        except Exception:
+        if choice == "use profile workspace":
+            # Let user pick a specific profile → extract its host
+            print(f"\n  {C}Pick a profile:{W}")
+            for i, (name, valid) in enumerate(profiles, 1):
+                status = f"{G}[valid]{W}" if valid else f"{DIM}[invalid]{W}"
+                print(f"    {B}[{i}]{W} {name} {status}")
+            pidx = _read_choice(f"  Choice (1-{len(profiles)}): ", len(profiles))
+            if pidx is None or not (1 <= pidx <= len(profiles)):
+                continue
+            profile_name = profiles[pidx - 1][0]
+
+            # Extract host from `databricks auth env --profile <name>`
             host = ""
+            try:
+                result = subprocess.run(
+                    ["databricks", "auth", "env", "--profile", profile_name],
+                    capture_output=True, text=True,
+                )
+                for line in result.stdout.splitlines():
+                    if "DATABRICKS_HOST" in line:
+                        host = line.split("=", 1)[-1].strip().strip('"').strip("'")
+                        break
+            except Exception:
+                host = ""
 
-        if not host:
-            print(f"  {WARN} Could not extract host for profile {profile_name} — enter manually{W}")
-            host = _read_line(f"Enter DATABRICKS_HOST: ")
+            if not host:
+                print(f"  {WARN} Could not extract host for profile {profile_name} — enter manually{W}")
+                host = _read_line(f"Enter DATABRICKS_HOST: ")
 
-        if not host:
+            if not host:
+                continue
+
+            # Set DATABRICKS_HOST + pre-set DATABRICKS_CONFIG_PROFILE
+            if cur:
+                comment_active_for_key(ENV_FILE, key)
+            write_env_entry(ENV_FILE, key, host)
+            comment_active_for_key(ENV_FILE, "DATABRICKS_CONFIG_PROFILE")
+            write_env_entry(ENV_FILE, "DATABRICKS_CONFIG_PROFILE", profile_name)
+            load_dotenv(ENV_FILE, override=True)
+            load_env_for_key(key, host)
+            print(f"  {OK} Host set: {C}{host}{W}")
+            print(f"  {OK} Profile pre-set: {C}{profile_name}{W}")
+            print(f"\n  {CONF}✓  Workspace configured.{W}")
             return True
 
-        # Set DATABRICKS_HOST + pre-set DATABRICKS_CONFIG_PROFILE
+        # Manual entry
+        val = _read_line(f"Enter DATABRICKS_HOST (https://....databricks.com): ")
+        if not val:
+            continue
         if cur:
             comment_active_for_key(ENV_FILE, key)
-        write_env_entry(ENV_FILE, key, host)
-        comment_active_for_key(ENV_FILE, "DATABRICKS_CONFIG_PROFILE")
-        write_env_entry(ENV_FILE, "DATABRICKS_CONFIG_PROFILE", profile_name)
+        write_env_entry(ENV_FILE, key, val)
         load_dotenv(ENV_FILE, override=True)
-        load_env_for_key(key, host)
-        print(f"  {OK} Host set: {C}{host}{W}")
-        print(f"  {OK} Profile pre-set: {C}{profile_name}{W}")
-        print(f"\n  {CONF}✓  Workspace configured.{W}")
+        load_env_for_key(key, val)
+        ok, msg = verify_host_only()
+        if ok:
+            print(f"  {OK} Set: {C}{val}{W}")
+            print(f"\n  {CONF}✓  Host configured.{W}")
+        else:
+            print(f"  {FAIL} {msg}{W}")
+            abort_step()
         return True
-
-    # Manual entry
-    val = _read_line(f"Enter DATABRICKS_HOST (https://....databricks.com): ")
-    if not val:
-        return True
-    if cur:
-        comment_active_for_key(ENV_FILE, key)
-    write_env_entry(ENV_FILE, key, val)
-    load_dotenv(ENV_FILE, override=True)
-    load_env_for_key(key, val)
-    ok, msg = verify_host_only()
-    if ok:
-        print(f"  {OK} Set: {C}{val}{W}")
-        print(f"\n  {CONF}✓  Host configured.{W}")
-    else:
-        print(f"  {FAIL} {msg}{W}")
-        abort_step()
-    return True
 
 
 def verify_host_only() -> tuple[bool, str]:
@@ -1625,8 +1626,7 @@ def run_resource(
     while True:
         choice = prompt_choice("Action?" if prompt_hint else "Action?", choices)
         if choice is None:
-            print(f"  {DIM}Skipped{W}")
-            return True
+            continue
 
         if choice == "keep":
             return True
