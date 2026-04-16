@@ -31,15 +31,17 @@ case "$CMD" in
     fi
     echo "Run: source $SHELL_RC"
     ;;
-  setup)  exec "$ROOT/scripts/setup_dbx_env.sh" "$@" ;;
-  deploy) exec "$ROOT/deploy/deploy.sh" "$@" ;;
+  setup)    exec "$ROOT/scripts/setup_dbx_env.sh" "$@" ;;
+  deploy)   exec "$ROOT/deploy/deploy.sh" "$@" ;;
+  teardown) exec uv run python "$ROOT/scripts/teardown.py" "$@" ;;
   "")
     echo "Usage: ./run <command>"
     echo ""
     echo "Commands:"
-    echo "  install  Add repo root to PATH (run once after cloning)"
-    echo "  setup    Interactive Databricks env setup"
-    echo "  deploy   Deploy to Databricks"
+    echo "  install   Add repo root to PATH (run once after cloning)"
+    echo "  setup     Interactive Databricks env setup"
+    echo "  deploy    Deploy to Databricks"
+    echo "  teardown  Delete all workspace resources (keep catalog + KA)"
     exit 1
     ;;
   *)
