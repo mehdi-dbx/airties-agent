@@ -20,8 +20,14 @@ from fastapi import HTTPException
 
 _NODE_SERVER = Path(__file__).resolve().parents[1] / "e2e-chatbot-app-next" / "server" / "dist" / "index.mjs"
 
+_CLIENT_DIST = Path(__file__).resolve().parents[1] / "e2e-chatbot-app-next" / "client" / "dist" / "index.html"
+
 @app.on_event("startup")
 async def start_frontend():
+    if not _CLIENT_DIST.exists() and _NODE_SERVER.exists():
+        _frontend_root = str(_NODE_SERVER.parents[2])
+        subprocess.run(["npm", "install"], cwd=_frontend_root, check=True)
+        subprocess.run(["npm", "run", "build:client"], cwd=_frontend_root, check=True)
     if _NODE_SERVER.exists():
         node_env = os.environ.copy()
         node_env["NODE_ENV"] = "production"
