@@ -111,12 +111,6 @@ env:
     value: "300"
   - name: MLFLOW_EXPERIMENT_ID
     valueFrom: "experiment"
-  - name: AGENT_MODEL_ENDPOINT
-    value: "PLACEHOLDER_ENDPOINT"
-  # Secret injected via DAB resource 'agent_model_token' (scope: agent-forge, key: AGENT_MODEL_TOKEN).
-  # Managed by sync script. To push manually: databricks secrets put-secret agent-forge AGENT_MODEL_TOKEN --string-value <PAT>
-  - name: AGENT_MODEL_TOKEN
-    valueFrom: "agent_model_token"
   - name: PROJECT_UNITY_CATALOG_SCHEMA
     value: "PLACEHOLDER_SCHEMA"
   - name: DATABRICKS_WAREHOUSE_ID
@@ -329,53 +323,61 @@ def main() -> int:
 
     schema_spec = os.environ.get("PROJECT_UNITY_CATALOG_SCHEMA", "").strip()
 
-    # app.yaml: AGENT_MODEL_ENDPOINT, PROJECT_UNITY_CATALOG_SCHEMA, DATABRICKS_WAREHOUSE_ID, PROJECT_KA_PASSENGERS
-    # AGENT_MODEL_TOKEN is managed via Databricks Secrets — not stamped here.
+    # app.yaml env var sync
+    # AGENT_MODEL_ENDPOINT + AGENT_MODEL_TOKEN: only present when cross-workspace endpoint is set.
+    # All others: always present, value updated from .env.local.
     if app_yml.exists():
         app_content = app_yml.read_text()
         app_changed = False
 
-        # If AGENT_MODEL_ENDPOINT is not set (same-workspace mode):
-        # - clear PLACEHOLDER_ENDPOINT so deploy.sh PLACEHOLDER check doesn't abort
-        # - remove AGENT_MODEL_TOKEN valueFrom entry (resource no longer exists in databricks.yml)
-        if not endpoint:
-            if "PLACEHOLDER_ENDPOINT" in app_content:
-                app_content = re.sub(
-                    r"(AGENT_MODEL_ENDPOINT\s*\n\s+value:\s*)[\"']PLACEHOLDER_ENDPOINT[\"']",
-                    r'\g<1>""',
-                    app_content,
-                    count=1,
-                )
-                app_changed = True
-                changes.append(("app.yaml  AGENT_MODEL_ENDPOINT", None, "(cleared — same-workspace mode)"))
-            new_app = re.sub(
-                r"\s*- name: AGENT_MODEL_TOKEN\s*\n\s+valueFrom: [\"']agent_model_token[\"']\n?",
-                "\n",
-                app_content,
-            )
-            if new_app != app_content:
-                app_content = new_app
-                app_changed = True
-                changes.append(("app.yaml  AGENT_MODEL_TOKEN", None, "(removed — same-workspace mode)"))
+        def _app_has(name: str) -> bool:
+            return bool(re.search(rf"- name: {name}\b", app_content))
 
-        # If PROJECT_KA_PASSENGERS is not set, clear PLACEHOLDER so deploy.sh doesn't abort.
-        if not ka_endpoint and "PLACEHOLDER_KA_ENDPOINT" in app_content:
-            app_content = re.sub(
-                r"(PROJECT_KA_PASSENGERS\s*\n\s+value:\s*)[\"']PLACEHOLDER_KA_ENDPOINT[\"']",
-                r'\g<1>""',
-                app_content,
-                count=1,
-            )
-            app_changed = True
-            changes.append(("app.yaml  PROJECT_KA_PASSENGERS", None, "(cleared — not configured)"))
+        def _app_remove(content: str, name: str) -> str:
+            """Remove a full env entry block (- name: KEY\n    value/valueFrom: ...\n)."""
+            # Remove optional preceding comment line too
+            content = re.sub(rf"  #[^\n]*\n(?=  - name: {name}\b)", "", content)
+            return re.sub(rf"  - name: {name}\b[^\n]*\n(?:    [^\n]*\n)*", "", content)
 
+        def _app_set(content: str, name: str, value: str, use_value_from: bool = False) -> str:
+            """Update existing entry value, or append if missing."""
+            key = "valueFrom" if use_value_from else "value"
+            pattern = rf"({name}\s*\n\s+{key}:\s*)[\"']([^\"']*)[\"']"
+            if re.search(pattern, content):
+                return re.sub(pattern, r'\g<1>"' + value + '"', content, count=1)
+            # Append before PROJECT_UNITY_CATALOG_SCHEMA as anchor
+            entry = f'  - name: {name}\n    {key}: "{value}"\n'
+            return content.replace("  - name: PROJECT_UNITY_CATALOG_SCHEMA", entry + "  - name: PROJECT_UNITY_CATALOG_SCHEMA", 1)
+
+        # AGENT_MODEL_ENDPOINT + AGENT_MODEL_TOKEN: inject only for cross-workspace
+        if endpoint:
+            new = _app_set(app_content, "AGENT_MODEL_ENDPOINT", endpoint)
+            if not _app_has("AGENT_MODEL_TOKEN"):
+                new += '  # Secret injected via DAB resource agent_model_token (scope: agent-forge, key: AGENT_MODEL_TOKEN).\n'
+                new += '  - name: AGENT_MODEL_TOKEN\n    valueFrom: "agent_model_token"\n'
+            if new != app_content:
+                app_content = new; app_changed = True
+                changes.append(("app.yaml  AGENT_MODEL_ENDPOINT", "AGENT_MODEL_ENDPOINT", endpoint))
+        else:
+            # Same-workspace: remove both if present
+            for name in ("AGENT_MODEL_ENDPOINT", "AGENT_MODEL_TOKEN"):
+                if _app_has(name):
+                    app_content = _app_remove(app_content, name)
+                    app_changed = True
+                    changes.append((f"app.yaml  {name}", None, "(removed — same-workspace mode)"))
+
+        # Standard value fields
         for env_name, value in [
-            ("AGENT_MODEL_ENDPOINT", endpoint),
             ("PROJECT_UNITY_CATALOG_SCHEMA", schema_spec),
             ("DATABRICKS_WAREHOUSE_ID", wh_id),
             ("PROJECT_KA_PASSENGERS", ka_endpoint),
         ]:
             if not value:
+                # Remove if present (not configured)
+                if _app_has(env_name):
+                    app_content = _app_remove(app_content, env_name)
+                    app_changed = True
+                    changes.append((f"app.yaml  {env_name}", None, "(removed — not configured)"))
                 continue
             m = re.search(rf"{env_name}\s*\n\s+value:\s*[\"']([^\"']*)[\"']", app_content)
             if m and m.group(1) != value:
