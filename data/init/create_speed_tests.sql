@@ -1,0 +1,25 @@
+CREATE OR REPLACE TABLE __SCHEMA_QUALIFIED__.speed_tests (
+    test_id STRING,
+    device_id STRING,
+    node_id STRING,
+    download_mbps DOUBLE,
+    upload_mbps DOUBLE,
+    latency_ms DOUBLE,
+    jitter_ms DOUBLE,
+    band STRING,
+    test_time TIMESTAMP_NTZ
+)
+USING DELTA
+TBLPROPERTIES (delta.enableChangeDataFeed = true);
+
+INSERT INTO __SCHEMA_QUALIFIED__.speed_tests VALUES
+('T001', 'D001', 'N001', 245.3,  48.7, 8.2,  1.1, '5GHz',   CAST('2026-04-23 09:00:00' AS TIMESTAMP_NTZ)),
+('T002', 'D005', 'N004', 310.1,  55.2, 6.5,  0.8, '5GHz',   CAST('2026-04-23 09:05:00' AS TIMESTAMP_NTZ)),
+('T003', 'D003', 'N003', 185.6,  32.4, 12.1, 2.3, '5GHz',   CAST('2026-04-23 09:10:00' AS TIMESTAMP_NTZ)),
+('T004', 'D004', 'N002', 42.8,   12.1, 25.4, 5.7, '2.4GHz', CAST('2026-04-23 09:15:00' AS TIMESTAMP_NTZ)),
+('T005', 'D007', 'N003', 198.2,  41.3, 10.8, 1.9, '5GHz',   CAST('2026-04-23 09:20:00' AS TIMESTAMP_NTZ)),
+('T006', 'D009', 'N005', 15.3,   4.2,  68.5, 12.4,'2.4GHz', CAST('2026-04-23 09:25:00' AS TIMESTAMP_NTZ)),
+('T007', 'D002', 'N001', 220.7,  45.8, 9.1,  1.3, '5GHz',   CAST('2026-04-23 09:30:00' AS TIMESTAMP_NTZ)),
+('T008', 'D011', 'N007', 175.4,  38.6, 11.5, 2.0, '5GHz',   CAST('2026-04-23 09:35:00' AS TIMESTAMP_NTZ)),
+('T009', 'D006', 'N008', 35.2,   8.9,  32.1, 6.8, '2.4GHz', CAST('2026-04-23 09:40:00' AS TIMESTAMP_NTZ)),
+('T010', 'D012', 'N001', 255.9,  50.1, 7.8,  1.0, '5GHz',   CAST('2026-04-23 09:45:00' AS TIMESTAMP_NTZ));

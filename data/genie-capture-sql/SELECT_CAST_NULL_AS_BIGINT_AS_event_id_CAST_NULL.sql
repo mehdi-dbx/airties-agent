@@ -1,0 +1,1 @@
+SELECT CAST(NULL AS BIGINT) AS event_id, CAST(NULL AS TIMESTAMP) AS event_timestamp, CAST(NULL AS STRING) AS event_type, CAST(NULL AS STRING) AS severity, CAST(NULL AS STRING) AS details WHERE FALSE -- MAC address lookup not possible with current schema; no matching columns exist.

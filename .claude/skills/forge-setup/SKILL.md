@@ -12,7 +12,7 @@ Entry point. Claude discovers the current state, presents a summary, and guides 
 ### 1. Load current state (run in parallel)
 
 ```bash
-grep -E "^(DATABRICKS_HOST|DATABRICKS_TOKEN|DATABRICKS_WAREHOUSE_ID|PROJECT_UNITY_CATALOG_SCHEMA|PROJECT_GENIE_CHECKIN|PROJECT_KA_PASSENGERS|MLFLOW_EXPERIMENT_ID|AGENT_MODEL_ENDPOINT|DBX_APP_NAME|ENV_STORE_CATALOG_VOLUME_PATH)=" /Users/mehdi.lamrani/code/code/agent-forge/.env.local 2>/dev/null
+grep -E "^(DATABRICKS_HOST|DATABRICKS_TOKEN|DATABRICKS_WAREHOUSE_ID|PROJECT_UNITY_CATALOG_SCHEMA|PROJECT_GENIE_ROOM|PROJECT_KA_AIRTIES|MLFLOW_EXPERIMENT_ID|AGENT_MODEL_ENDPOINT|DBX_APP_NAME|ENV_STORE_CATALOG_VOLUME_PATH)=" /Users/mehdi.lamrani/code/code/agent-forge/.env.local 2>/dev/null
 ```
 
 ```bash
@@ -76,7 +76,7 @@ Suggested next step: /forge-setup-tables  (tables missing)
 | 5 | tables | Delta tables |
 | 6 | functions | UC functions (data/func/) |
 | 7 | procedures | UC procedures (data/proc/) |
-| 8 | genie | PROJECT_GENIE_CHECKIN |
+| 8 | genie | PROJECT_GENIE_ROOM |
 | 9 | ka | Knowledge Assistants |
 | 10 | mlflow | MLFLOW_EXPERIMENT_ID |
 | 11 | model | AGENT_MODEL_ENDPOINT + TOKEN |

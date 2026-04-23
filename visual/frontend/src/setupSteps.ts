@@ -58,7 +58,7 @@ export const SETUP_STEPS: SetupStep[] = [
   {
     id: 'genie',
     label: 'genie space',
-    title: 'PROJECT_GENIE_CHECKIN',
+    title: 'PROJECT_GENIE_ROOM',
     choices: [
       { title: 'pick existing space', desc: 'list genie spaces available in this workspace', action: 'cfg-genie' },
       { title: 'create new room',     desc: 'provision a new genie room with a name',        action: 'exec-genie' },
@@ -69,7 +69,7 @@ export const SETUP_STEPS: SetupStep[] = [
   {
     id: 'ka',
     label: 'knowledge assistant',
-    title: 'PROJECT_KA_PASSENGERS',
+    title: 'PROJECT_KA_AIRTIES',
     choices: [
       { title: 'provision from pdfs', desc: 'upload data/pdf/ files and create a new KA', action: 'exec-ka' },
       { title: 'keep current',        desc: 'use KA already set in .env.local',            action: 'done' },

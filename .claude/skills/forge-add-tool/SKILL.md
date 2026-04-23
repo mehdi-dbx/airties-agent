@@ -133,7 +133,7 @@ Then ask the agent a question that should trigger the tool and verify it appears
 
 Use this when the tool should query a Knowledge Assistant endpoint instead of a SQL warehouse.
 
-The KA endpoint is stored in `.env.local` as `PROJECT_KA_<SLUG>` (e.g. `PROJECT_KA_PASSENGERS`).
+The KA endpoint is stored in `.env.local` as `PROJECT_KA_<SLUG>` (e.g. `PROJECT_KA_AIRTIES`).
 It is called via HTTP POST and returns a JSON response with citations.
 
 ### KA tool template

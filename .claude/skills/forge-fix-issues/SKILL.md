@@ -190,7 +190,7 @@ old = '''@app.on_event(\"startup\")
 async def start_frontend():
     if _NODE_SERVER.exists():'''
 
-new = '''_CLIENT_DIST = Path(__file__).resolve().parents[1] / \"e2e-chatbot-app-next\" / \"client\" / \"dist\" / \"index.html\"
+new = '''_CLIENT_DIST = Path(__file__).resolve().parents[1] / \"app\" / \"client\" / \"dist\" / \"index.html\"
 
 @app.on_event(\"startup\")
 async def start_frontend():

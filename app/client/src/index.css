@@ -1,0 +1,621 @@
+/* Import Open Sans from Google Fonts (Airties Veron design system) */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap');
+
+/* set base path to root directory to include utility classes from app, components, pages, etc. */
+@import "tailwindcss";
+
+/* include plugins */
+@plugin "tailwindcss-animate";
+@plugin "@tailwindcss/typography";
+
+/* custom variant for setting dark mode programmatically */
+@custom-variant dark (&:is(.dark, .dark *));
+
+/* ── Airties Veron Design Tokens (light mode) ── */
+:root {
+  --font-sans: 'Open Sans', sans-serif;
+  --font-mono: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+
+  /* Airties primary: navy #000098 */
+  --background: #F8F9FB;
+  --foreground: #111827;
+  --card: #FFFFFF;
+  --card-foreground: #111827;
+  --popover: #FFFFFF;
+  --popover-foreground: #111827;
+  --primary: #000098;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F8F9FB;
+  --secondary-foreground: #111827;
+  --muted: #F2F4F7;
+  --muted-foreground: #6B7280;
+  --accent: #EEEEF8;
+  --accent-foreground: #000098;
+  --destructive: #FF4057;
+  --destructive-foreground: #FFFFFF;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #000098;
+  --chart-1: #000098;
+  --chart-2: #FFA330;
+  --chart-3: #68D87A;
+  --chart-4: #479CFF;
+  --chart-5: #FF4057;
+  --sidebar-background: #F2F4F7;
+  --sidebar-foreground: #6B7280;
+  --sidebar-primary: #000098;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EEEEF8;
+  --sidebar-accent-foreground: #000098;
+  --sidebar-border: #E5E7EB;
+  --sidebar-ring: #000098;
+  /* border radius unit */
+  --radius: 0.75rem;
+}
+
+/* ── Airties Veron Design Tokens (dark mode) ── */
+.dark {
+  --background: #0F1117;
+  --foreground: #F0F1F3;
+  --card: #1A1C24;
+  --card-foreground: #F0F1F3;
+  --popover: #1A1C24;
+  --popover-foreground: #F0F1F3;
+  --primary: #7070C4;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1E2029;
+  --secondary-foreground: #F0F1F3;
+  --muted: #1E2029;
+  --muted-foreground: #9CA3AF;
+  --accent: #252740;
+  --accent-foreground: #A0A0D9;
+  --destructive: #FF4057;
+  --destructive-foreground: #FFFFFF;
+  --border: #2D2F3A;
+  --input: #2D2F3A;
+  --ring: #7070C4;
+  --chart-1: #7070C4;
+  --chart-2: #FFA330;
+  --chart-3: #68D87A;
+  --chart-4: #479CFF;
+  --chart-5: #FF4057;
+  --sidebar-background: #141620;
+  --sidebar-foreground: #9CA3AF;
+  --sidebar-primary: #7070C4;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #252740;
+  --sidebar-accent-foreground: #A0A0D9;
+  --sidebar-border: #2D2F3A;
+  --sidebar-ring: #7070C4;
+}
+
+/* define theme */
+@theme {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --breakpoint-toast-mobile: 600px;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility -webkit-overflow-scrolling-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
+@utility touch-pan-y {
+  touch-action: pan-y;
+}
+
+@utility overscroll-behavior-contain {
+  overscroll-behavior: contain;
+}
+
+@layer utilities {
+  :root {
+    --foreground-rgb: 17, 24, 39;
+    --background-start-rgb: 248, 249, 251;
+    --background-end-rgb: 255, 255, 255;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --foreground-rgb: 240, 241, 243;
+      --background-start-rgb: 15, 17, 23;
+      --background-end-rgb: 15, 17, 23;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  html {
+    overflow-x: hidden;
+  }
+}
+
+.skeleton {
+  * {
+    pointer-events: none !important;
+  }
+
+  *[class^="text-"] {
+    color: transparent;
+    @apply rounded-md bg-foreground/20 select-none animate-pulse;
+  }
+
+  .skeleton-bg {
+    @apply bg-foreground/10;
+  }
+
+  .skeleton-div {
+    @apply bg-foreground/20 animate-pulse;
+  }
+}
+
+.ProseMirror {
+  outline: none;
+}
+
+.cm-editor,
+.cm-gutters {
+  @apply bg-background! dark:bg-zinc-800! outline-hidden! selection:bg-zinc-900!;
+}
+
+.ͼo.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground,
+.ͼo.cm-selectionBackground,
+.ͼo.cm-content::selection {
+  @apply bg-zinc-200! dark:bg-zinc-900!;
+}
+
+.cm-activeLine,
+.cm-activeLineGutter {
+  @apply bg-transparent!;
+}
+
+.cm-activeLine {
+  @apply rounded-r-sm!;
+}
+
+.cm-lineNumbers {
+  @apply min-w-7;
+}
+
+.cm-foldGutter {
+  @apply min-w-3;
+}
+
+.cm-lineNumbers .cm-activeLineGutter {
+  @apply rounded-l-sm!;
+}
+
+.suggestion-highlight {
+  @apply bg-blue-200 hover:bg-blue-300 dark:hover:bg-blue-400/50 dark:text-blue-50 dark:bg-blue-500/40;
+}
+
+/* Mic button tint only when listening (clicked) - back to normal when idle */
+button.voice-mic-listening {
+  background: rgba(254, 226, 226, 0.5) !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+button.voice-mic-listening:hover {
+  background: rgba(254, 226, 226, 0.65) !important;
+}
+
+.dark button.voice-mic-listening {
+  background: rgba(127, 29, 29, 0.3) !important;
+}
+
+.dark button.voice-mic-listening:hover {
+  background: rgba(127, 29, 29, 0.45) !important;
+}
+
+/* Chat loading indicator: bouncing dots + rotating status */
+@keyframes chat-dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.chat-loading-dot {
+  animation: chat-dot-bounce 1.4s ease-in-out infinite both;
+}
+
+.chat-loading-dot:nth-child(1) { animation-delay: 0s; }
+.chat-loading-dot:nth-child(2) { animation-delay: 0.16s; }
+.chat-loading-dot:nth-child(3) { animation-delay: 0.32s; }
+
+@keyframes chat-status-shimmer {
+  0% { background-position: 200% 50%; }
+  100% { background-position: -200% 50%; }
+}
+
+@keyframes chat-status-glow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35); }
+}
+
+.chat-loading-status {
+  color: var(--muted-foreground);
+  /* Shimmer: gradient sweep + brightness pulse (both run in phrase classes) */
+  background: linear-gradient(
+    90deg,
+    var(--muted-foreground) 0%,
+    var(--muted-foreground) 25%,
+    var(--foreground) 50%,
+    var(--muted-foreground) 75%,
+    var(--muted-foreground) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Cycle through 3 status phrases, 7s each (21s total). Include shimmer so it's not overridden. */
+@keyframes chat-status-cycle-1 {
+  0%, 33.33% { opacity: 1; }
+  33.34%, 100% { opacity: 0; }
+}
+
+@keyframes chat-status-cycle-2 {
+  0%, 33.33% { opacity: 0; }
+  33.34%, 66.66% { opacity: 1; }
+  66.67%, 100% { opacity: 0; }
+}
+
+@keyframes chat-status-cycle-3 {
+  0%, 66.66% { opacity: 0; }
+  66.67%, 100% { opacity: 1; }
+}
+
+.chat-status-phrase-1 {
+  animation:
+    chat-status-shimmer 2s ease-in-out infinite,
+    chat-status-glow 1.5s ease-in-out infinite,
+    chat-status-cycle-1 21s ease-in-out infinite;
+}
+.chat-status-phrase-2 {
+  animation:
+    chat-status-shimmer 2s ease-in-out infinite,
+    chat-status-glow 1.5s ease-in-out infinite,
+    chat-status-cycle-2 21s ease-in-out infinite;
+}
+.chat-status-phrase-3 {
+  animation:
+    chat-status-shimmer 2s ease-in-out infinite,
+    chat-status-glow 1.5s ease-in-out infinite,
+    chat-status-cycle-3 21s ease-in-out infinite;
+}
+
+/* Tool-specific message (single phrase) also gets shimmer + glow */
+.chat-loading-status:not([class*="chat-status-phrase"]) {
+  animation: chat-status-shimmer 2s ease-in-out infinite, chat-status-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes voice-bar {
+  0%, 100% { height: 8px; }
+  50% { height: 20px; }
+}
+
+@keyframes row-flash {
+  0% { background-color: rgb(254 226 226); }
+  25% { background-color: transparent; }
+  50% { background-color: rgb(254 226 226); }
+  75% { background-color: transparent; }
+  100% { background-color: transparent; }
+}
+
+@keyframes row-flash-dark {
+  0% { background-color: rgb(127 29 29 / 0.5); }
+  25% { background-color: transparent; }
+  50% { background-color: rgb(127 29 29 / 0.5); }
+  75% { background-color: transparent; }
+  100% { background-color: transparent; }
+}
+
+.animate-row-flash {
+  animation: row-flash 2s ease-out forwards;
+}
+
+.dark .animate-row-flash {
+  animation-name: row-flash-dark;
+}
+
+/* ── Airties Veron Prose / Markdown Styles ── */
+
+/* Code blocks */
+.prose pre,
+.streamdown pre {
+  background: #1e1e2e !important;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  margin: 0.9em 0;
+  overflow-x: auto;
+}
+
+/* Inline code */
+.prose code:not(pre code),
+.streamdown code:not(pre code) {
+  background: #f0f4ff;
+  color: #be185d;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  border: 1px solid #e0e7ff;
+}
+
+.dark .prose code:not(pre code),
+.dark .streamdown code:not(pre code) {
+  background: #252740;
+  color: #f472b6;
+  border-color: #3d3d54;
+}
+
+/* Tables */
+.prose table,
+.streamdown table {
+  border-collapse: collapse;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.prose thead,
+.streamdown thead {
+  background: #eff6ff;
+}
+
+.dark .prose thead,
+.dark .streamdown thead {
+  background: #1e2029;
+}
+
+.prose th,
+.streamdown th {
+  font-weight: 600;
+  color: #1e40af;
+  padding: 9px 14px;
+  border-bottom: 2px solid #bfdbfe;
+  text-align: left;
+}
+
+.dark .prose th,
+.dark .streamdown th {
+  color: #93c5fd;
+  border-bottom-color: #2D2F3A;
+}
+
+.prose td,
+.streamdown td {
+  padding: 7px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dark .prose td,
+.dark .streamdown td {
+  border-bottom-color: #2D2F3A;
+}
+
+.prose tbody tr:hover,
+.streamdown tbody tr:hover {
+  background: #f8faff;
+}
+
+.dark .prose tbody tr:hover,
+.dark .streamdown tbody tr:hover {
+  background: #1E2029;
+}
+
+/* Blockquotes */
+.prose blockquote,
+.streamdown blockquote {
+  border-left: 4px solid #818cf8;
+  margin: 0.8em 0;
+  padding: 0.6em 1em;
+  background: #eef2ff;
+  border-radius: 0 8px 8px 0;
+  color: #374151;
+  font-style: italic;
+}
+
+.dark .prose blockquote,
+.dark .streamdown blockquote {
+  background: #252740;
+  color: #D1D5DB;
+  border-left-color: #7070C4;
+}
+
+/* Links in prose */
+.prose a,
+.streamdown a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose a:hover,
+.streamdown a:hover {
+  color: #2222B8;
+}
+
+.dark .prose a:hover,
+.dark .streamdown a:hover {
+  color: #A0A0D9;
+}
+
+/* Headings in chat content */
+.prose h1, .streamdown h1 {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 0.3em;
+}
+
+.prose h2, .streamdown h2 {
+  color: #1e40af;
+  border-bottom: 1px solid #bfdbfe;
+  padding-bottom: 0.2em;
+}
+
+.dark .prose h2, .dark .streamdown h2 {
+  color: #93c5fd;
+  border-bottom-color: #2D2F3A;
+}
+
+.prose h3, .streamdown h3 {
+  color: #2563eb;
+}
+
+.dark .prose h3, .dark .streamdown h3 {
+  color: #60a5fa;
+}
+
+/* Lists */
+.prose ul, .streamdown ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin: 0.4em 0;
+}
+
+.prose ol, .streamdown ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin: 0.4em 0;
+}
+
+.prose li, .streamdown li {
+  margin: 0.2em 0;
+}
+
+/* Bold */
+.prose strong, .prose b,
+.streamdown strong, .streamdown b {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dark .prose strong, .dark .prose b,
+.dark .streamdown strong, .dark .streamdown b {
+  color: #f1f5f9;
+}
+
+/* Italic */
+.prose em, .prose i,
+.streamdown em, .streamdown i {
+  font-style: italic;
+}
+
+/* Paragraphs */
+.prose p, .streamdown p {
+  margin: 0.3em 0;
+}
+
+/* minimal scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: --alpha(var(--muted-foreground) / 0.5);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}

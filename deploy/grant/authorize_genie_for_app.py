@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Add genie_space resource to databricks.yml so app SP gets CAN_RUN.
-Reads space_id from PROJECT_GENIE_CHECKIN in .env.local or databricks.yml."""
+Reads space_id from PROJECT_GENIE_ROOM in .env.local or databricks.yml."""
 import os
 import re
 import sys
@@ -23,10 +23,10 @@ def main() -> int:
             space_id = m.group(1)
 
     if not space_id:
-        space_id = os.environ.get("PROJECT_GENIE_CHECKIN", "").strip()
+        space_id = os.environ.get("PROJECT_GENIE_ROOM", "").strip()
 
     if not space_id:
-        print("Error: No space_id found. Set PROJECT_GENIE_CHECKIN in .env.local", file=sys.stderr)
+        print("Error: No space_id found. Set PROJECT_GENIE_ROOM in .env.local", file=sys.stderr)
         return 1
 
     if not YML.exists():

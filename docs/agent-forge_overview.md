@@ -91,7 +91,7 @@ Everything needed to stand up the data layer from scratch.
 | `knowledge.base` | Operational FAQ injected as knowledge blocks |
 | `user.prompt` | Starter user-facing prompts |
 
-### `e2e-chatbot-app-next/`
+### `app/`
 Full-stack chat application (npm monorepo). The React client is **built remotely at app startup** (`npm install && npm run build:client && npm run start`) — no pre-built dist is committed or uploaded.
 
 | Package | Role |
@@ -108,7 +108,7 @@ Configuration files shared across the framework.
 
 | Path | Contents |
 |---|---|
-| `config/ka/ka_passengers.yml` | KA definition: display name, instructions, examples for EU passenger rights |
+| `config/ka/ka_airties.yml` | KA definition: display name, instructions, examples for EU passenger rights |
 | `config/ka/output_format.yml` | Shared output schema — JSON with answer + verbatim source excerpts |
 | `config/.env.example` | Environment variable reference template |
 
@@ -260,7 +260,7 @@ All infrastructure (DAB, MLflow, UC schema) is config-driven via `.env.local` an
 | File | Contents |
 |---|---|
 | `docs/Build & setup flow.md` | Step-by-step initialization flow with folder map |
-| `e2e-chatbot-app-next/README.md` | Chat app setup, deployment, testing |
-| `e2e-chatbot-app-next/CLAUDE.md` | Claude Code context, commands, conventions for the frontend |
+| `app/README.md` | Chat app setup, deployment, testing |
+| `app/CLAUDE.md` | Claude Code context, commands, conventions for the frontend |
 | `config/.env.example` | All environment variable definitions |
-| `config/ka/ka_passengers.yml` | Example KA configuration (EU passenger rights) |
+| `config/ka/ka_airties.yml` | Example KA configuration (EU passenger rights) |

@@ -1,0 +1,1 @@
+SELECT 'No speed test data available in schema' AS message

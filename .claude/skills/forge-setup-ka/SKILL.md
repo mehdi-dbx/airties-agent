@@ -5,7 +5,7 @@ description: Configure Knowledge Assistant endpoints interactively. Claude check
 
 # Agent Forge — Setup: ka
 
-Configures `PROJECT_KA_PASSENGERS` (and other KA vars) in `.env.local`.
+Configures `PROJECT_KA_AIRTIES` (and other KA vars) in `.env.local`.
 
 ## Flow
 
@@ -39,7 +39,7 @@ PDFs in data/pdf/:
   [+]  EU_Passenger_Rights.pdf
   [+]  Flight_Compensation_Rules.pdf
 
-Current : PROJECT_KA_PASSENGERS = ka-087003b9-endpoint  [ACTIVE]
+Current : PROJECT_KA_AIRTIES = ka-087003b9-endpoint  [ACTIVE]
 
 Existing KAs in workspace:
   [+]  ka-087003b9-endpoint  "Passengers"  ACTIVE   ← current
@@ -55,7 +55,7 @@ Existing KAs in workspace:
 
 **keep** → skip
 
-**use existing** → write chosen endpoint name to .env.local as `PROJECT_KA_PASSENGERS`
+**use existing** → write chosen endpoint name to .env.local as `PROJECT_KA_AIRTIES`
 
 **provision / recreate** → run provisioning steps:
 ```bash
@@ -80,7 +80,7 @@ grep "^PROJECT_KA_" /Users/mehdi.lamrani/code/code/agent-forge/.env.local
 python3 -c "
 import re; from pathlib import Path
 f = Path('/Users/mehdi.lamrani/code/code/agent-forge/.env.local')
-key, val = 'PROJECT_KA_PASSENGERS', '<CHOSEN_ENDPOINT>'
+key, val = 'PROJECT_KA_AIRTIES', '<CHOSEN_ENDPOINT>'
 lines = f.read_text().splitlines() if f.exists() else []
 new = []; found = False
 for line in lines:
@@ -99,7 +99,7 @@ print('[+]', key, '=', val)
 cd /Users/mehdi.lamrani/code/code/agent-forge && uv run python -c "
 from dotenv import load_dotenv; load_dotenv('.env.local', override=True)
 from databricks.sdk import WorkspaceClient; import os
-ep = os.environ.get('PROJECT_KA_PASSENGERS','').strip()
+ep = os.environ.get('PROJECT_KA_AIRTIES','').strip()
 w = WorkspaceClient()
 for ka in w.knowledge_assistants.list_knowledge_assistants():
     if ka.endpoint_name == ep:
@@ -114,7 +114,7 @@ else:
 ### 6. Confirm + next step
 
 ```
-[+] PROJECT_KA_PASSENGERS = ka-087003b9-endpoint  (ACTIVE)
+[+] PROJECT_KA_AIRTIES = ka-087003b9-endpoint  (ACTIVE)
 
 Next: /forge-setup-mlflow
 ```

@@ -98,8 +98,8 @@ visual/
 | warehouse | `DATABRICKS_WAREHOUSE_ID` | SDK warehouses.get(id) |
 | schema | `PROJECT_UNITY_CATALOG_SCHEMA` | SDK schemas.get(full_name) |
 | model | `AGENT_MODEL_ENDPOINT` | POST test message to endpoint |
-| genie | `PROJECT_GENIE_CHECKIN` | SDK genie.get_space(space_id) |
-| ka | `PROJECT_KA_PASSENGERS` | SDK serving_endpoints.get(name) |
+| genie | `PROJECT_GENIE_ROOM` | SDK genie.get_space(space_id) |
+| ka | `PROJECT_KA_AIRTIES` | SDK serving_endpoints.get(name) |
 | mlflow | `MLFLOW_EXPERIMENT_ID` | SDK experiments.get_experiment(id) |
 | grants | — | re-runnable, no test |
 

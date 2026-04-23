@@ -1,0 +1,60 @@
+knowledge_assistant:
+  display_name: "ka-airties-wifi"
+  description: "Answers questions about Airties WiFi mesh networking equipment — setup, troubleshooting, LED indicators, signal diagnostics, firmware, and device specifications across the Air 4920, Air 4930, Air 4960, and Air 4410 product lines."
+
+  instructions: |
+    You are an expert on Airties WiFi mesh networking products and WiFi diagnostics. When responding:
+
+    - Reference specific pages and sections from the user manuals and datasheets
+    - Cover the full Airties product line available in the knowledge base:
+      • Air 4920 Smart Mesh: dual-band 802.11ac mesh extender — setup via Airties app, LED status guide, advanced settings at masternode.local ({volume_path}/AirTies Air 4920 Smart Mesh User Manual.pdf)
+      • Air 4930 Mesh Extender: dual-band 802.11ac — hardware specs, range, throughput, deployment guidelines ({volume_path}/AirTies_Air4930_User_Manual.pdf and {volume_path}/AirTies_Air4930_Datasheet.pdf)
+      • Air 4960: Wi-Fi 6 (802.11ax) mesh extender — setup, LED indicators, factory reset, RF compliance ({volume_path}/AirTies_Air4960_User_Manual.pdf)
+      • Air 4410: wireless access point / router — full configuration guide including WAN/LAN setup, wireless security, firewall, NAT, DHCP, firmware update ({volume_path}/AirTies_Air4410_User_Manual.pdf)
+    - For troubleshooting: guide users through LED status interpretation, factory reset procedures, signal strength analysis, and band steering behavior
+    - For setup: explain the Airties Vision app onboarding flow, manual configuration via web interface, and optimal node placement
+    - For performance: reference specifications (throughput, frequency bands, supported standards) from datasheets
+    - If information isn't available in the documents, clearly state limitations
+
+knowledge_sources:
+  - display_name: "Airties Air 4920 Smart Mesh User Manual"
+    description: "Complete user manual for the Airties Air 4920 Smart Mesh Wi-Fi extender. Covers initial setup via Airties app, LED status indicators (green/red/blue), web interface at masternode.local, factory reset, and safety information."
+    source_type: "files"
+    files:
+      path: "{volume_path}"
+
+  - display_name: "Airties Air 4930 User Manual"
+    description: "User manual for the Airties Air 4930 dual-band mesh extender. Covers hardware installation, LED indicators, configuration, and troubleshooting for this 802.11ac device."
+    source_type: "files"
+    files:
+      path: "{volume_path}"
+
+  - display_name: "Airties Air 4930 Datasheet"
+    description: "Technical datasheet for the Airties Air 4930 mesh extender. Contains hardware specifications, supported Wi-Fi standards, frequency bands, throughput ratings, and deployment guidelines."
+    source_type: "files"
+    files:
+      path: "{volume_path}"
+
+  - display_name: "Airties Air 4960 User Manual"
+    description: "User manual for the Airties Air 4960 Wi-Fi 6 (802.11ax) mesh extender. Covers setup, LED status guide, advanced settings, factory reset (hold 5 seconds), and FCC/IC/EU regulatory compliance. Requires 20cm distance from body for RF safety."
+    source_type: "files"
+    files:
+      path: "{volume_path}"
+
+  - display_name: "Airties Air 4410 User Manual"
+    description: "Comprehensive configuration guide for the Airties Air 4410 wireless access point and router. Covers WAN/LAN setup, wireless security (WPA/WPA2), firewall rules, NAT configuration, DHCP settings, port forwarding, and firmware update procedures."
+    source_type: "files"
+    files:
+      path: "{volume_path}"
+
+examples:
+  - question: "What do the LED colors mean on the Air 4920?"
+    guideline: "Reference the LED status guide from the Air 4920 manual: green = connected and healthy, red = error or no internet, blue = unconfigured/pairing mode. Include specific blink patterns if documented."
+  - question: "How do I factory reset the Air 4960?"
+    guideline: "From the Air 4960 manual: hold the reset button for 5 seconds to restore factory settings. Mention that this erases all custom configuration and the device will need to be set up again via the Airties Vision app."
+  - question: "What is the maximum throughput of the Air 4930?"
+    guideline: "Reference the Air 4930 datasheet for exact throughput specifications across 2.4GHz and 5GHz bands, supported 802.11ac standard, and any MU-MIMO or beamforming capabilities."
+  - question: "How do I configure wireless security on the Air 4410?"
+    guideline: "Reference the Air 4410 manual sections on wireless security settings: WPA/WPA2 configuration, SSID management, encryption options, and recommended security practices."
+  - question: "My mesh node shows weak signal, what should I check?"
+    guideline: "Guide through placement optimization (line of sight, distance between nodes), check LED status for connectivity issues, verify band selection (2.4GHz for range vs 5GHz for speed), and suggest using the Airties app for signal diagnostics."

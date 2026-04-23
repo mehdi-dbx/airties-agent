@@ -157,5 +157,5 @@ Drops tables, stored procedures, functions, Genie space, and MLflow experiment â
 | `docs/agent-forge_overview.md` | Full component-by-component reference |
 | `docs/Build & setup flow.md` | Layered build and setup flow diagram |
 | `config/.env.example` | All environment variable definitions |
-| `config/ka/ka_passengers.yml` | Example KA configuration |
-| `e2e-chatbot-app-next/CLAUDE.md` | Frontend conventions and commands |
+| `config/ka/ka_airties.yml` | Example KA configuration |
+| `app/CLAUDE.md` | Frontend conventions and commands |

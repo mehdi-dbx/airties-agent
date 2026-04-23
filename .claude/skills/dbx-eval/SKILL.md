@@ -12,7 +12,7 @@ Runs MLflow GenAI evaluation of the passenger-rights Knowledge Assistant using a
 | File | Purpose |
 |------|---------|
 | `eval/run_eval.py` | Main orchestrator — run1 / run2 |
-| `eval/predict.py` | Calls `PROJECT_KA_PASSENGERS` endpoint |
+| `eval/predict.py` | Calls `PROJECT_KA_AIRTIES` endpoint |
 | `eval/scorer.py` | Claude judge via `AGENT_MODEL_ENDPOINT` |
 | `eval/eval_dataset.py` | 13 EC 261/2004 test questions |
 | `eval/data/ec261_eval_dataset.jsonl` | JSONL source of truth |
@@ -22,7 +22,7 @@ Runs MLflow GenAI evaluation of the passenger-rights Knowledge Assistant using a
 
 - `DATABRICKS_HOST` — workspace URL
 - `DATABRICKS_TOKEN` — PAT for KA endpoint auth
-- `PROJECT_KA_PASSENGERS` — KA endpoint name (e.g. `ka-ff5f8b5a-endpoint`)
+- `PROJECT_KA_AIRTIES` — KA endpoint name (e.g. `ka-ff5f8b5a-endpoint`)
 - `AGENT_MODEL_ENDPOINT` — Claude Sonnet judge endpoint URL
 - `AGENT_MODEL_TOKEN` — Judge endpoint auth token
 - `MLFLOW_EXPERIMENT_ID` — MLflow experiment to log runs into

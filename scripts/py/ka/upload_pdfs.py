@@ -11,10 +11,20 @@ Usage:
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent.parent
+# Find project root by looking for pyproject.toml
+def _find_root() -> Path:
+    p = Path(__file__).resolve()
+    for parent in [p] + list(p.parents):
+        if (parent / "pyproject.toml").exists():
+            return parent
+    # fallback: assume scripts/py/ka/ structure
+    return Path(__file__).resolve().parent.parent.parent.parent
+
+ROOT = _find_root()
 DATA_DIR = ROOT / "data" / "pdf"
 
 G = "\033[32m"
@@ -31,73 +41,46 @@ WARN = f"{Y}⚠{W}"
 INFO = f"{C}→{W}"
 
 
-def _volume_path() -> str | None:
-    spec = os.environ.get("PROJECT_UNITY_CATALOG_SCHEMA", "").strip()
-    if not spec or "." not in spec:
-        return None
-    catalog, schema = spec.split(".", 1)
-    return f"/Volumes/{catalog.strip()}/{schema.strip()}/doc"
-
-
-def main() -> int:
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Upload PDFs to UC volume for KA documents")
-    parser.add_argument("--dry-run", action="store_true", help="Print what would be uploaded without uploading")
-    args = parser.parse_args()
-
+def main() -> None:
     from dotenv import load_dotenv
     load_dotenv(ROOT / ".env.local", override=True)
 
-    vol_path = _volume_path()
-    if not vol_path:
-        print(f"{FAIL} PROJECT_UNITY_CATALOG_SCHEMA not set or invalid (expected catalog.schema){W}", file=sys.stderr)
-        return 1
+    spec = os.environ.get("PROJECT_UNITY_CATALOG_SCHEMA", "").strip()
+    if not spec or "." not in spec:
+        print(f"{FAIL} PROJECT_UNITY_CATALOG_SCHEMA not set or invalid (expected catalog.schema){W}")
+        sys.exit(1)
+
+    catalog, schema = spec.split(".", 1)
+    vol_path = f"/Volumes/{catalog}/{schema}/doc"
 
     pdfs = sorted(DATA_DIR.glob("*.pdf"))
     if not pdfs:
         print(f"{WARN} No PDF files found in {DATA_DIR}{W}")
-        return 0
+        sys.exit(0)
+
+    dry_run = "--dry-run" in sys.argv
 
     print(f"\n{BOLD}Uploading {len(pdfs)} PDF(s) to {vol_path}{W}\n")
 
-    if args.dry_run:
-        for pdf in pdfs:
-            print(f"  {INFO} {DIM}would upload:{W} {pdf.name} {DIM}→ {vol_path}/{pdf.name}{W}")
-        print(f"\n  {WARN} {DIM}--dry-run: no files uploaded{W}\n")
-        return 0
-
-    try:
-        from databricks.sdk import WorkspaceClient
-
-        token = os.environ.get("DATABRICKS_TOKEN")
-        if token:
-            w = WorkspaceClient(host=os.environ.get("DATABRICKS_HOST"), token=token)
-        else:
-            w = WorkspaceClient()
-    except Exception as e:
-        print(f"{FAIL} Connection failed: {e}{W}", file=sys.stderr)
-        return 1
-
-    failed = 0
     for pdf in pdfs:
-        dest = f"{vol_path}/{pdf.name}"
-        print(f"  {INFO} {pdf.name} {DIM}→ {dest}{W}", end=" ", flush=True)
-        try:
-            with open(pdf, "rb") as f:
-                w.files.upload(dest, f, overwrite=True)
-            print(f"{OK}")
-        except Exception as e:
-            print(f"{FAIL} {e}{W}")
-            failed += 1
+        remote = f"{vol_path}/{pdf.name}"
+        if dry_run:
+            print(f"  {INFO} {DIM}would upload:{W} {pdf.name} {DIM}→ {remote}{W}")
+        else:
+            try:
+                from databricks.sdk import WorkspaceClient
+                w = WorkspaceClient()
+                with open(pdf, "rb") as f:
+                    w.files.upload(remote, f, overwrite=True)
+                print(f"  {OK} {pdf.name}")
+            except Exception as e:
+                print(f"  {FAIL} {pdf.name}: {e}{W}")
 
-    print()
-    if failed:
-        print(f"{FAIL} {failed} file(s) failed to upload.{W}")
-        return 1
-    print(f"{OK} All {len(pdfs)} file(s) uploaded successfully.{W}\n")
-    return 0
+    if dry_run:
+        print(f"\n  {WARN} {DIM}--dry-run: no files uploaded{W}")
+    else:
+        print(f"\n  {OK} Done")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

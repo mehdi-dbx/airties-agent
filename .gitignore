@@ -1,7 +1,7 @@
 # Build artifacts
 
-e2e-chatbot-app-next/client/node_modules/
-e2e-chatbot-app-next/server/node_modules/
+app/client/node_modules/
+app/server/node_modules/
 visual/backend/node_modules/
 visual/frontend/node_modules/
 visual/frontend/dist/
@@ -31,4 +31,4 @@ logs/*
 
 # FEVM session cookies (contains auth tokens, never commit)
 internal/fevm/session_cookies.json
-e2e-chatbot-app-next/client/dist/
+app/client/dist/

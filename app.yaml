@@ -22,5 +22,5 @@ env:
     value: "db_workshop_london.airties_mehdi"
   - name: DATABRICKS_WAREHOUSE_ID
     value: "6435bcfcf68fd910"
-  - name: PROJECT_KA_PASSENGERS
+  - name: PROJECT_KA_AIRTIES
     value: "ka-e0012089-endpoint"

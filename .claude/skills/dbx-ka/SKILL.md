@@ -11,7 +11,7 @@ Guides through creating a new KA agent: write the YAML config, deploy it, and ve
 
 - `config/ka/ka_<name>.yml` — per-KA definition (display_name, description, instructions, knowledge_sources)
 - `config/ka/output_format.yml` — shared output format prepended to every KA's instructions automatically
-- `config/ka/ka_passengers.yml` — reference example
+- `config/ka/ka_airties.yml` — reference example
 - `scripts/py/ka/create_kas_from_yml.py` — creates KAs in Databricks from YAML configs
 - `scripts/py/ka/list_ka_states.py` — lists all KAs with state (ACTIVE / FAILED / CREATING)
 - `scripts/py/ka/ka_instructions_merger.py` — merges shared output_format + per-KA instructions
@@ -53,7 +53,7 @@ examples:
 ## Env Var Mapping
 
 After a KA becomes ACTIVE, its endpoint is written to `.env.local`:
-- Display name containing "passenger" → `PROJECT_KA_PASSENGERS`
+- Display name containing "passenger" → `PROJECT_KA_AIRTIES`
 - Any other name → `PROJECT_KA_<DISPLAY_NAME_UPPER>` (slug of display_name)
 
 ## Workflow
@@ -66,7 +66,7 @@ Ask the user for:
 3. What documents will be indexed (they must already be in the UC Volume at `{volume_path}`)
 4. Key instructions (how to cite, what to cover, limitations)
 
-Then write `config/ka/ka_<slug>.yml` following the schema above. Use `config/ka/ka_passengers.yml` as a style reference.
+Then write `config/ka/ka_<slug>.yml` following the schema above. Use `config/ka/ka_airties.yml` as a style reference.
 
 ### Step 2 — Dry-run validate
 

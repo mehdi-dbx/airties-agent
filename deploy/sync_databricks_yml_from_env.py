@@ -4,7 +4,7 @@ Creates databricks.yml and app.yaml from templates if they don't exist.
 
 Updates:
   - databricks.yml: sql_warehouse.id, genie_space.space_id, serving_endpoint.name, ka_endpoint.name, app name
-  - app.yaml: AGENT_MODEL_ENDPOINT, PROJECT_UNITY_CATALOG_SCHEMA, DATABRICKS_WAREHOUSE_ID, PROJECT_KA_PASSENGERS
+  - app.yaml: AGENT_MODEL_ENDPOINT, PROJECT_UNITY_CATALOG_SCHEMA, DATABRICKS_WAREHOUSE_ID, PROJECT_KA_AIRTIES
   - Databricks Secrets: pushes AGENT_MODEL_TOKEN to scope 'agent-forge' (cross-workspace only)
 
 Usage:
@@ -115,7 +115,7 @@ env:
     value: "PLACEHOLDER_SCHEMA"
   - name: DATABRICKS_WAREHOUSE_ID
     value: "PLACEHOLDER_WAREHOUSE_ID"
-  - name: PROJECT_KA_PASSENGERS
+  - name: PROJECT_KA_AIRTIES
     value: "PLACEHOLDER_KA_ENDPOINT"
 """
 
@@ -222,13 +222,13 @@ def main() -> int:
             )
             changes.append(("sql_warehouse.id", "DATABRICKS_WAREHOUSE_ID", wh_id))
 
-    # genie_space.space_id + name <- PROJECT_GENIE_CHECKIN
-    genie_id = os.environ.get("PROJECT_GENIE_CHECKIN", "").strip()
+    # genie_space.space_id + name <- PROJECT_GENIE_ROOM
+    genie_id = os.environ.get("PROJECT_GENIE_ROOM", "").strip()
     if genie_id:
         m = re.search(r"genie_space:.*?space_id: '([^']*)'", content, re.DOTALL)
         if m and m.group(1) != genie_id:
             content = re.sub(r"space_id: '[^']*'", f"space_id: '{genie_id}'", content, count=1)
-            changes.append(("genie_space.space_id", "PROJECT_GENIE_CHECKIN", genie_id))
+            changes.append(("genie_space.space_id", "PROJECT_GENIE_ROOM", genie_id))
         # Replace placeholder name with a fixed DAB label (name is a bundle ref, not workspace-specific)
         if "PLACEHOLDER_GENIE_NAME" in content:
             content = content.replace("PLACEHOLDER_GENIE_NAME", "agent-forge-checkin", 1)
@@ -328,8 +328,8 @@ def main() -> int:
             )
             changes.append(("serving_endpoint.name", "AGENT_MODEL_ENDPOINT", endpoint))
 
-    # ka_endpoint.name <- PROJECT_KA_PASSENGERS
-    ka_endpoint = os.environ.get("PROJECT_KA_PASSENGERS", "").strip()
+    # ka_endpoint.name <- PROJECT_KA_AIRTIES
+    ka_endpoint = os.environ.get("PROJECT_KA_AIRTIES", "").strip()
     if ka_endpoint:
         m = re.search(r"ka_endpoint.*?serving_endpoint:.*?name: '([^']*)'", content, re.DOTALL)
         if m and m.group(1) != ka_endpoint:
@@ -339,7 +339,7 @@ def main() -> int:
                 content,
                 count=1,
             )
-            changes.append(("ka_endpoint.name", "PROJECT_KA_PASSENGERS", ka_endpoint))
+            changes.append(("ka_endpoint.name", "PROJECT_KA_AIRTIES", ka_endpoint))
     else:
         # Remove ka_endpoint resource block so PLACEHOLDER check doesn't abort
         new_content = re.sub(
@@ -349,7 +349,7 @@ def main() -> int:
         )
         if new_content != content:
             content = new_content
-            changes.append(("ka_endpoint resource", "PROJECT_KA_PASSENGERS", "removed (not configured)"))
+            changes.append(("ka_endpoint resource", "PROJECT_KA_AIRTIES", "removed (not configured)"))
 
     # production target app name <- DBX_APP_NAME
     app_name = os.environ.get("DBX_APP_NAME", "").strip()
@@ -419,7 +419,7 @@ def main() -> int:
         for env_name, value in [
             ("PROJECT_UNITY_CATALOG_SCHEMA", schema_spec),
             ("DATABRICKS_WAREHOUSE_ID", wh_id),
-            ("PROJECT_KA_PASSENGERS", ka_endpoint),
+            ("PROJECT_KA_AIRTIES", ka_endpoint),
         ]:
             if not value:
                 # Remove if present (not configured)
@@ -444,14 +444,14 @@ def main() -> int:
 
     # Always print current config summary
     host = os.environ.get("DATABRICKS_HOST", "").strip()
-    genie_id_display = os.environ.get("PROJECT_GENIE_CHECKIN", "").strip()
+    genie_id_display = os.environ.get("PROJECT_GENIE_ROOM", "").strip()
     print(f"\n{BOLD}Current config:{W}")
     for label, val in [
         ("DATABRICKS_HOST              ", host),
         ("DATABRICKS_WAREHOUSE_ID      ", wh_id),
         ("PROJECT_UNITY_CATALOG_SCHEMA ", schema_spec),
-        ("PROJECT_GENIE_CHECKIN        ", genie_id_display),
-        ("PROJECT_KA_PASSENGERS        ", ka_endpoint),
+        ("PROJECT_GENIE_ROOM        ", genie_id_display),
+        ("PROJECT_KA_AIRTIES        ", ka_endpoint),
         ("AGENT_MODEL_ENDPOINT         ", endpoint),
         ("DBX_APP_NAME                 ", app_name),
     ]:

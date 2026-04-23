@@ -2,7 +2,7 @@
 """
 Create a Genie space named "PROJECT CHECKIN" with all tables from PROJECT_UNITY_CATALOG_SCHEMA.
 
-Prints space_id to stdout. Updates .env.local with PROJECT_GENIE_CHECKIN.
+Prints space_id to stdout. Updates .env.local with PROJECT_GENIE_ROOM.
 
 Requires: PROJECT_UNITY_CATALOG_SCHEMA, DATABRICKS_WAREHOUSE_ID (or a warehouse in the workspace).
 """
@@ -65,7 +65,7 @@ def main():
         {"id": gen_id(), "question": ["What are total check-ins by airline?"]},
         {"id": gen_id(), "question": ["Show load factor and SLA by airline"]},
     ]
-    env_var = "PROJECT_GENIE_CHECKIN"
+    env_var = "PROJECT_GENIE_ROOM"
 
     serialized = {
         "version": 2,

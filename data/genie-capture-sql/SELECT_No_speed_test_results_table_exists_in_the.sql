@@ -1,0 +1,1 @@
+SELECT 'No speed test results table exists in the schema, so this request cannot be fulfilled with the available data.' AS message

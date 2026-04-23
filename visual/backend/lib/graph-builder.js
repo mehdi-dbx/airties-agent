@@ -111,8 +111,8 @@ function buildGraph() {
         subtitle: 'MCP-based Genie space',
         sourceFile: 'agent/agent.py',
         meta: {
-          spaceIdEnvVar: 'PROJECT_GENIE_CHECKIN',
-          mcpServerName: 'genie-checkin',
+          spaceIdEnvVar: 'PROJECT_GENIE_ROOM',
+          mcpServerName: 'genie-airties',
           transport: 'DatabricksMultiServerMCPClient',
         },
       },

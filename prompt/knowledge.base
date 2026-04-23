@@ -1,42 +1,51 @@
 # Operational Knowledge Base
 
-Use this for answering operational questions not covered by the available tools. Substitute flight numbers from context when the operator asks about a specific flight.
+Use this for answering operational questions not covered by the available tools.
 
 ---
 
-## Flight check-in cut-off missed
+## Weak WiFi signal in a room
 
-**Question:** "Passenger missed the check-in cut-off. Can I still accept them for [flight]?"
-
-**Answer:** Yes — passenger can still be accepted.
-
-**Action:**
-- Accept at counter
-- Issue boarding pass
-- No supervisor approval required
-
-**Benefit:** Helps protect **[flight]** from further delay.
-
----
-
-## Overweight bag — fastest option
-
-**Question:** "Passenger bag is overweight. Fastest option?"
+**Question:** "Client device showing weak signal. What should I check?"
 
 **Answer:**
-- Overweight below 1 kg: accept, no rebooking required
-- Send to standard belt, not oversize
 
-**Tip:** Processing now avoids queue buildup.
+**Action:**
+- Check if the nearest mesh node is online and operational
+- Verify the client is connecting to the closest node (not a distant one)
+- Check for interference on the current band (2.4 GHz vs 5 GHz)
+- Suggest relocating the mesh node or adding an extender
+
+**Tip:** Signal strength below -70 dBm typically indicates the device is too far from the nearest node.
 
 ---
 
-## Self-service / alternative check-in options
+## Frequent disconnections
 
-**Question:** "Any other check-in options available to speed things up?"
+**Question:** "Device keeps disconnecting from WiFi. What's going on?"
 
-**Answer:** Yes — redirect passengers without checked bags to available self-service kiosks.
+**Answer:**
 
-**Recommendation:**
-- Prioritise passengers departing in the next 60 minutes at counter
-- Direct others to kiosks to reduce queue pressure on at-risk flights
+**Action:**
+- Check WiFi events for disconnect patterns (time of day, frequency)
+- Look for interference events around the same timestamps
+- Verify firmware is up to date on the mesh node
+- Check if band steering is causing unwanted band switches
+
+**Tip:** Recurring disconnects at similar times often indicate interference from neighboring networks or appliances.
+
+---
+
+## Slow speeds despite strong signal
+
+**Question:** "Speed test results are low but signal is fine."
+
+**Answer:**
+
+**Action:**
+- Check which band the device is connected to (2.4 GHz has lower throughput)
+- Verify no other devices are saturating bandwidth
+- Check backhaul link quality between mesh nodes
+- Run a wired speed test to isolate WiFi vs ISP issues
+
+**Tip:** A device on 2.4 GHz with strong signal will still be slower than 5 GHz. Check band steering settings.

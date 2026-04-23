@@ -135,12 +135,12 @@ const STEPS = {
     {title:'set up new workspace',desc:'run databricks auth login for a new FM host',action:'cfg-new'},
     {title:'enter manually',desc:'paste an endpoint URL and token directly',action:'manual'},
   ]},
-  genie:{label:'genie space',title:'PROJECT_GENIE_CHECKIN',choices:[
+  genie:{label:'genie space',title:'PROJECT_GENIE_ROOM',choices:[
     {title:'pick existing space',desc:'list genie spaces available in this workspace',action:'cfg-genie'},
     {title:'create new room',desc:'provision a new genie room with a name',action:'exec-genie'},
     {title:'enter id manually',desc:'paste a genie space ID directly',action:'manual'},
   ]},
-  ka:{label:'knowledge assistant',title:'PROJECT_KA_PASSENGERS',choices:[
+  ka:{label:'knowledge assistant',title:'PROJECT_KA_AIRTIES',choices:[
     {title:'provision from pdfs',desc:'upload data/pdf/ files and create a new KA',action:'exec-ka'},
     {title:'use existing ka',desc:'pick from KAs already in this workspace',action:'cfg-ka'},
   ]},
@@ -179,7 +179,7 @@ const EXEC = {
   'exec-genie':[
     [0,'▸ creating genie room "checkin-agent"...','amber'],
     [1200,'✓ space id: 01ef8a...','green'],
-    [1600,'✓ PROJECT_GENIE_CHECKIN saved','green'],
+    [1600,'✓ PROJECT_GENIE_ROOM saved','green'],
   ],
   'exec-ka':[
     [0,'▸ creating UC volume...','amber'],

@@ -226,8 +226,8 @@ function currentValueLabel(stepId: StepId, values: Record<string, string>): stri
     case 'warehouse': return v.DATABRICKS_WAREHOUSE_ID || ''
     case 'schema':    return v.PROJECT_UNITY_CATALOG_SCHEMA || ''
     case 'model':     return v.AGENT_MODEL_ENDPOINT?.replace('https://', '') || ''
-    case 'genie':     return v.PROJECT_GENIE_CHECKIN || ''
-    case 'ka':        return v.PROJECT_KA_PASSENGERS || ''
+    case 'genie':     return v.PROJECT_GENIE_ROOM || ''
+    case 'ka':        return v.PROJECT_KA_AIRTIES || ''
     case 'mlflow':    return v.MLFLOW_EXPERIMENT_ID || ''
     default:          return ''
   }

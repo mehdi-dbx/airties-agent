@@ -38,10 +38,10 @@ Unity Catalog
         [x]  checkin_agents   (table not found)
 
 Genie
-  [+]  PROJECT_GENIE_CHECKIN   01f139de...  (Checkin Metrics)
+  [+]  PROJECT_GENIE_ROOM   01f139de...  (Checkin Metrics)
 
 Knowledge Assistants
-  [+]  PROJECT_KA_PASSENGERS   ka-087003b9-endpoint (ACTIVE)
+  [+]  PROJECT_KA_AIRTIES   ka-087003b9-endpoint (ACTIVE)
 
 MLflow
   [+]  MLFLOW_EXPERIMENT_ID   3688767017703470

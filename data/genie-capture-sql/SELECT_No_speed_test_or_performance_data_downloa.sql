@@ -1,0 +1,1 @@
+SELECT 'No speed test or performance data (download/upload/latency) available in the current schema.' AS message

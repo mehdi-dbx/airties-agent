@@ -5,7 +5,7 @@ set -e
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
-if [[ ! -d e2e-chatbot-app-next ]]; then
+if [[ ! -d app ]]; then
   echo "Frontend not found. Run 'uv run start-app' once to clone it, then run this script again."
   exit 1
 fi
@@ -54,7 +54,7 @@ wait_for() {
 }
 
 # Build Node server (ensures latest routes, e.g. /api/tables)
-(cd e2e-chatbot-app-next && npm run build:server) || true
+(cd app && npm run build:server) || true
 
 PYTHON="$ROOT/.venv/bin/python"
 if [[ ! -x "$PYTHON" ]]; then
@@ -73,12 +73,12 @@ BACKEND_PID=$!
 wait_for "http://127.0.0.1:8000/health" "Backend" || true
 
 env CHAT_APP_PORT=3001 PORT=3001 API_PROXY="$API_PROXY" LOG_SSE_EVENTS="${LOG_SSE_EVENTS:-true}" \
-  bash -c 'cd e2e-chatbot-app-next && npm run dev:built --workspace=@databricks/chatbot-server' \
+  bash -c 'cd app && npm run dev:built --workspace=@databricks/chatbot-server' \
   >> "$ROOT/logs/node.log" 2>&1 &
 NODE_PID=$!
 wait_for "http://127.0.0.1:3001/ping" "Node API" || true
 
-bash -c 'cd e2e-chatbot-app-next && npm run dev:client' >> "$ROOT/logs/frontend.log" 2>&1 &
+bash -c 'cd app && npm run dev:client' >> "$ROOT/logs/frontend.log" 2>&1 &
 FRONTEND_PID=$!
 sleep 5
 

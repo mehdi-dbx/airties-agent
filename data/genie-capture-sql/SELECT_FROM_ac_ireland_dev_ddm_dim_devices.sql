@@ -1,0 +1,1 @@
+SELECT * FROM `ac_ireland_dev`.`ddm`.`dim_devices` WHERE row_created BETWEEN dateadd(HOUR, -1, CURRENT_TIMESTAMP) AND CURRENT_TIMESTAMP

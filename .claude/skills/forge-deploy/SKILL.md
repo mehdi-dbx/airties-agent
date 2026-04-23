@@ -12,7 +12,7 @@ Deploys agent-forge to Databricks Apps via Asset Bundle. Claude handles all step
 ### 1. Pre-flight: check required env vars
 
 ```bash
-grep -E "^(DBX_APP_NAME|PROJECT_UNITY_CATALOG_SCHEMA|DATABRICKS_HOST|DATABRICKS_WAREHOUSE_ID|AGENT_MODEL_ENDPOINT|PROJECT_GENIE_CHECKIN|DATABRICKS_TOKEN|AGENT_MODEL_TOKEN|MLFLOW_EXPERIMENT_ID)=" /Users/mehdi.lamrani/code/code/agent-forge/.env.local 2>/dev/null
+grep -E "^(DBX_APP_NAME|PROJECT_UNITY_CATALOG_SCHEMA|DATABRICKS_HOST|DATABRICKS_WAREHOUSE_ID|AGENT_MODEL_ENDPOINT|PROJECT_GENIE_ROOM|DATABRICKS_TOKEN|AGENT_MODEL_TOKEN|MLFLOW_EXPERIMENT_ID)=" /Users/mehdi.lamrani/code/code/agent-forge/.env.local 2>/dev/null
 ```
 
 Required vars (abort if missing):
@@ -21,7 +21,7 @@ Required vars (abort if missing):
 - `DATABRICKS_HOST`
 - `DATABRICKS_WAREHOUSE_ID`
 - `AGENT_MODEL_ENDPOINT`
-- `PROJECT_GENIE_CHECKIN`
+- `PROJECT_GENIE_ROOM`
 - At least one of: `DATABRICKS_TOKEN` or a matching CLI profile for `DATABRICKS_HOST`
 
 Optional (warn if missing):
@@ -37,7 +37,7 @@ forge-deploy — Pre-flight
 [+]  DBX_APP_NAME                 agent-vibe-app-no-dist
 [+]  DATABRICKS_WAREHOUSE_ID      8ba51d8cad2a3d9a
 [+]  PROJECT_UNITY_CATALOG_SCHEMA agent_forge_catalog.main
-[+]  PROJECT_GENIE_CHECKIN        01f139de...
+[+]  PROJECT_GENIE_ROOM        01f139de...
 [+]  AGENT_MODEL_ENDPOINT         https://e2-demo-field-eng.../invocations
 [~]  AGENT_MODEL_TOKEN            not set  (needed for cross-workspace endpoint)
 [~]  MLFLOW_EXPERIMENT_ID         not set  (experiment tracking disabled)

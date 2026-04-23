@@ -4,13 +4,13 @@
 Deletes:
   - Databricks App (DBX_APP_NAME)
   - MLflow experiment (MLFLOW_EXPERIMENT_ID)
-  - Genie space (PROJECT_GENIE_CHECKIN)
+  - Genie space (PROJECT_GENIE_ROOM)
   - UC Volume (derived from PROJECT_UNITY_CATALOG_SCHEMA)
   - UC tables from data/init/create_*.sql
   - UC functions from data/func/*.sql
   - UC procedures from data/proc/*.sql
   - DAB bundle state (.databricks/bundle/)
-  - Clears PROJECT_GENIE_CHECKIN + MLFLOW_EXPERIMENT_ID from .env.local
+  - Clears PROJECT_GENIE_ROOM + MLFLOW_EXPERIMENT_ID from .env.local
 
 Keeps:
   - Unity Catalog
@@ -124,7 +124,7 @@ def main() -> int:
     # ── Collect resource IDs from env ──────────────────────────────────────────
     app_name    = os.environ.get("DBX_APP_NAME", "").strip()
     exp_id      = os.environ.get("MLFLOW_EXPERIMENT_ID", "").strip()
-    genie_id    = os.environ.get("PROJECT_GENIE_CHECKIN", "").strip()
+    genie_id    = os.environ.get("PROJECT_GENIE_ROOM", "").strip()
     schema_spec = os.environ.get("PROJECT_UNITY_CATALOG_SCHEMA", "").strip()
     catalog, schema = schema_spec.split(".", 1) if "." in schema_spec else ("", "")
     volume_name = "doc"  # convention from create_volume.py
@@ -200,7 +200,7 @@ def main() -> int:
         else:
             print(f"  {SKIP} Skipped")
     else:
-        print(f"  {SKIP} PROJECT_GENIE_CHECKIN not set — skipped")
+        print(f"  {SKIP} PROJECT_GENIE_ROOM not set — skipped")
 
     # ── UC Volume ──────────────────────────────────────────────────────────────
     section("UC Volume")
@@ -303,7 +303,7 @@ def main() -> int:
     # ── Clear .env.local ───────────────────────────────────────────────────────
     section(".env.local cleanup")
     env_path = ROOT / ".env.local"
-    for key in ("PROJECT_GENIE_CHECKIN", "MLFLOW_EXPERIMENT_ID"):
+    for key in ("PROJECT_GENIE_ROOM", "MLFLOW_EXPERIMENT_ID"):
         val = os.environ.get(key, "").strip()
         if val:
             if _confirm(f"comment out {C}{key}{W} in .env.local"):

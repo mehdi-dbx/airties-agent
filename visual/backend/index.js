@@ -171,8 +171,8 @@ const STEP_ENV_KEYS = {
   warehouse: ['DATABRICKS_WAREHOUSE_ID'],
   schema:    ['PROJECT_UNITY_CATALOG_SCHEMA'],
   model:     ['AGENT_MODEL_ENDPOINT'],
-  genie:     ['PROJECT_GENIE_CHECKIN'],
-  ka:        ['PROJECT_KA_PASSENGERS'],
+  genie:     ['PROJECT_GENIE_ROOM'],
+  ka:        ['PROJECT_KA_AIRTIES'],
   mlflow:    ['MLFLOW_EXPERIMENT_ID'],
   grants:    [],  // always re-runnable, no single env key
 }
@@ -342,11 +342,11 @@ lines = f.read_text().splitlines() if f.exists() else []
 new = []; found = False
 for line in lines:
     m = re.match(r'^([A-Za-z_][A-Za-z0-9_]*)=', line)
-    if m and m.group(1) == 'PROJECT_GENIE_CHECKIN': new.append('PROJECT_GENIE_CHECKIN=${id}'); found = True
+    if m and m.group(1) == 'PROJECT_GENIE_ROOM': new.append('PROJECT_GENIE_ROOM=${id}'); found = True
     else: new.append(line)
-if not found: new.append('PROJECT_GENIE_CHECKIN=${id}')
+if not found: new.append('PROJECT_GENIE_ROOM=${id}')
 f.write_text('\\n'.join(new) + '\\n')
-print('[+] PROJECT_GENIE_CHECKIN = ${id}  (${name})')
+print('[+] PROJECT_GENIE_ROOM = ${id}  (${name})')
 `.trim().replace(/\$\{id\}/g, id).replace(/\$\{name\}/g, name)
 
 app.post('/api/setup/exec', (req, res) => {
@@ -550,8 +550,8 @@ except Exception as e:
   genie: `
 from dotenv import load_dotenv; load_dotenv('.env.local', override=True)
 from databricks.sdk import WorkspaceClient; import os
-sid = os.environ.get('PROJECT_GENIE_CHECKIN','').strip()
-if not sid: print('[x] PROJECT_GENIE_CHECKIN not set'); exit(1)
+sid = os.environ.get('PROJECT_GENIE_ROOM','').strip()
+if not sid: print('[x] PROJECT_GENIE_ROOM not set'); exit(1)
 w = WorkspaceClient()
 try:
     sp = w.genie.get_space(space_id=sid)
@@ -563,8 +563,8 @@ except Exception as e:
   ka: `
 from dotenv import load_dotenv; load_dotenv('.env.local', override=True)
 from databricks.sdk import WorkspaceClient; import os
-ka_name = os.environ.get('PROJECT_KA_PASSENGERS','').strip()
-if not ka_name: print('[x] PROJECT_KA_PASSENGERS not set'); exit(1)
+ka_name = os.environ.get('PROJECT_KA_AIRTIES','').strip()
+if not ka_name: print('[x] PROJECT_KA_AIRTIES not set'); exit(1)
 w = WorkspaceClient()
 try:
     ep = w.serving_endpoints.get(name=ka_name)

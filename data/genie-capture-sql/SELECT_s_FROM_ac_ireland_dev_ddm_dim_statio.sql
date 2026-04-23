@@ -1,0 +1,1 @@
+SELECT s.* FROM `ac_ireland_dev`.`ddm`.`dim_stations` s JOIN `ac_ireland_dev`.`ddm`.`dim_station_states` ss ON s.id = ss.dim_station_id AND ss.row_valid_now = true JOIN `ac_ireland_dev`.`ddm`.`dim_homes` h ON s.ext_tenant_id = h.ext_tenant_id AND h.row_valid_now = true JOIN `ac_ireland_dev`.`ddm`.`dim_domains` d ON h.dim_domain_id = d.id WHERE LOWER(d.domain_name) LIKE '%zone a%'

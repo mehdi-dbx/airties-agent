@@ -176,7 +176,7 @@ def verify_assets() -> bool:
                 ok = False
 
         # Genie space (if env set)
-        space_id = os.environ.get("PROJECT_GENIE_CHECKIN", "").strip()
+        space_id = os.environ.get("PROJECT_GENIE_ROOM", "").strip()
         if space_id:
             try:
                 space = w.genie.get_space(space_id=space_id)

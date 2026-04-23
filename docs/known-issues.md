@@ -136,14 +136,14 @@ DATABRICKS_HOST=https://... DATABRICKS_TOKEN=... databricks bundle deploy --forc
 
 ## 7. Frontend `client/dist/` not deployed — 500 on GET /
 
-**Symptom:** App starts but every request to `/` returns `500 Internal Server Error`. Logs show: *"ENOENT: no such file or directory, stat '.../e2e-chatbot-app-next/client/dist/index.html'"*
+**Symptom:** App starts but every request to `/` returns `500 Internal Server Error`. Logs show: *"ENOENT: no such file or directory, stat '.../app/client/dist/index.html'"*
 
 **Root cause:** `client/dist/` is gitignored and excluded from the bundle. The Node server starts but has no built frontend to serve. The Python startup event only spawned the Node process without checking or building the frontend.
 
 **Fix applied:** Added a remote build step to `agent/start_server.py`. On startup, if `client/dist/index.html` is absent, it runs `npm install` then `npm run build:client` before spawning the Node server:
 
 ```python
-_CLIENT_DIST = Path(__file__).resolve().parents[1] / "e2e-chatbot-app-next" / "client" / "dist" / "index.html"
+_CLIENT_DIST = Path(__file__).resolve().parents[1] / "app" / "client" / "dist" / "index.html"
 
 @app.on_event("startup")
 async def start_frontend():

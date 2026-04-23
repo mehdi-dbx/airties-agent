@@ -54,7 +54,7 @@ New tools: use `.claude/skills/forge-add-tool` (SQL read, action, or KA patterns
 
 ↓
 
-### `e2e-chatbot-app-next/`
+### `app/`
 | Layer | Description |
 |---|---|
 | `client/` | React + Vite frontend (built **remotely at app startup** — not pre-built) |

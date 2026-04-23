@@ -1,0 +1,1 @@
+SELECT NULL AS average_download_speed, NULL AS average_upload_speed, NULL AS average_latency WHERE FALSE;

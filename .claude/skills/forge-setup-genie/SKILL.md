@@ -1,18 +1,18 @@
 ---
 name: forge-setup-genie
-description: Configure PROJECT_GENIE_CHECKIN interactively. Claude lists Genie spaces from the workspace, presents numbered choices, takes the user's pick or creates a new room, writes to .env.local. No terminal needed.
+description: Configure PROJECT_GENIE_ROOM interactively. Claude lists Genie spaces from the workspace, presents numbered choices, takes the user's pick or creates a new room, writes to .env.local. No terminal needed.
 ---
 
 # Agent Forge — Setup: genie
 
-Configures `PROJECT_GENIE_CHECKIN` (Genie space ID) in `.env.local`.
+Configures `PROJECT_GENIE_ROOM` (Genie space ID) in `.env.local`.
 
 ## Flow
 
 ### 1. Read current state (run in parallel)
 
 ```bash
-grep "^PROJECT_GENIE_CHECKIN" /Users/mehdi.lamrani/code/code/agent-forge/.env.local 2>/dev/null || echo "NOT_SET"
+grep "^PROJECT_GENIE_ROOM" /Users/mehdi.lamrani/code/code/agent-forge/.env.local 2>/dev/null || echo "NOT_SET"
 ```
 ```bash
 cd /Users/mehdi.lamrani/code/code/agent-forge && uv run python -c "
@@ -31,7 +31,7 @@ for s in spaces:
 ### 2. Present choices
 
 ```
-forge-setup — Step 8: PROJECT_GENIE_CHECKIN
+forge-setup — Step 8: PROJECT_GENIE_ROOM
 
 Current : 01f139de15a5156fb140cf83b40ed88f  [+]  (or "not set")
 
@@ -57,7 +57,7 @@ cd /Users/mehdi.lamrani/code/code/agent-forge && GENIE_ROOM_NAME="<NAME>" uv run
 ```
 After success, read the new ID from .env.local:
 ```bash
-grep "^PROJECT_GENIE_CHECKIN" /Users/mehdi.lamrani/code/code/agent-forge/.env.local
+grep "^PROJECT_GENIE_ROOM" /Users/mehdi.lamrani/code/code/agent-forge/.env.local
 ```
 
 **enter manually** → ask: "Paste Genie space ID:"
@@ -68,7 +68,7 @@ grep "^PROJECT_GENIE_CHECKIN" /Users/mehdi.lamrani/code/code/agent-forge/.env.lo
 python3 -c "
 import re; from pathlib import Path
 f = Path('/Users/mehdi.lamrani/code/code/agent-forge/.env.local')
-key, val = 'PROJECT_GENIE_CHECKIN', '<CHOSEN_ID>'
+key, val = 'PROJECT_GENIE_ROOM', '<CHOSEN_ID>'
 lines = f.read_text().splitlines() if f.exists() else []
 new = []; found = False
 for line in lines:
@@ -87,7 +87,7 @@ print('[+]', key, '=', val)
 cd /Users/mehdi.lamrani/code/code/agent-forge && uv run python -c "
 from dotenv import load_dotenv; load_dotenv('.env.local', override=True)
 from databricks.sdk import WorkspaceClient; import os
-sid = os.environ.get('PROJECT_GENIE_CHECKIN','').strip()
+sid = os.environ.get('PROJECT_GENIE_ROOM','').strip()
 w = WorkspaceClient()
 sp = w.genie.get_space(space_id=sid)
 print('[+] Genie space:', getattr(sp,'title',sid))
@@ -97,7 +97,7 @@ print('[+] Genie space:', getattr(sp,'title',sid))
 ### 6. Confirm + next step
 
 ```
-[+] PROJECT_GENIE_CHECKIN = 01f139de...  ("Checkin Metrics")
+[+] PROJECT_GENIE_ROOM = 01f139de...  ("Checkin Metrics")
 
 Next: /forge-setup-ka
 ```
