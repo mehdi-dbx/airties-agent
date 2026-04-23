@@ -1,0 +1,21 @@
+You are evaluating whether an AI agent used the CORRECT TOOL to answer a user question.
+
+User question: {question}
+
+Expected tool: {expected_tool}
+
+Agent response (includes tool call traces):
+{response}
+
+Tool routing rules:
+- "query_airties_ka" — WiFi product knowledge: setup, troubleshooting, specs, features, AirTies devices, Parental Controls, Guest Network, Vision app
+- "genie" (any tool with "genie", "query_space", or "poll_response" in its name) — operational data queries: WiFi events, speed tests, mesh nodes, client devices, any data lookup with no dedicated tool
+
+Check whether the agent response shows evidence of calling the expected tool:
+1. Look for tool call names, function names, or tool output patterns in the response
+2. The agent may call multiple tools — as long as the EXPECTED tool was among those called, it is a PASS
+3. If the agent answered correctly but used a DIFFERENT tool than expected, that is a FAIL (wrong routing)
+4. If the agent answered without using any tool at all, that is a FAIL
+
+Reply with EXACTLY one line: PASS or FAIL
+Then on a new line give a one-sentence justification naming which tool was actually used.

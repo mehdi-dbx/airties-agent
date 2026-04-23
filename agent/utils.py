@@ -4,6 +4,8 @@ from typing import Any, AsyncGenerator, AsyncIterator, Optional
 from databricks.sdk import WorkspaceClient
 from databricks_langchain.chat_models import json
 from langchain.messages import AIMessageChunk, ToolMessage
+
+from agent.context_management import truncate_tool_result
 from mlflow.genai.agent_server import get_request_headers
 from mlflow.types.responses import (
     ResponsesAgentStreamEvent,
@@ -40,8 +42,10 @@ async def process_agent_astream_events(
             for node_data in event[1].values():
                 if len(node_data.get("messages", [])) > 0:
                     for msg in node_data["messages"]:
-                        if isinstance(msg, ToolMessage) and not isinstance(msg.content, str):
-                            msg.content = json.dumps(msg.content)
+                        if isinstance(msg, ToolMessage):
+                            if not isinstance(msg.content, str):
+                                msg.content = json.dumps(msg.content)
+                            msg.content = truncate_tool_result(msg.content)
                     for item in output_to_responses_items_stream(node_data["messages"]):
                         yield item
         elif event[0] == "messages":

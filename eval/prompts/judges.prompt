@@ -1,0 +1,17 @@
+You are evaluating a response from an AirTies WiFi product knowledge assistant.
+
+Question asked: {question}
+
+Assistant response:
+{response}
+
+Evaluate whether the response provides SPECIFIC, ACCURATE product detail by checking for at least ONE of:
+- A specific AirTies product model number (e.g. "Air 4960", "Air 4930", "Air 4410", "Air 4920")
+- A concrete technical specification (e.g. "AX5400", "5400 Mbps", "802.11ax", "WPA3", "MU-MIMO", "Broadcom BCM4708C0", "2 Gigabit LAN ports")
+- A named AirTies app or feature (e.g. "AirTies Vision app", "AirTies Network Assistant", "Parental Controls", "Guest Network", "QR code setup", "WPS")
+- A specific setup step or configuration detail (e.g. "PPPoE", "DHCP", "Bridge mode", "manual IP configuration")
+
+The response must NOT be a generic refusal, a vague answer, or just restate the question.
+
+Reply with EXACTLY one line: PASS or FAIL
+Then on a new line give a one-sentence justification.

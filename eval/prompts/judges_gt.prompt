@@ -1,0 +1,18 @@
+You are evaluating a response from an AirTies WiFi product knowledge assistant against a ground-truth reference answer.
+
+Question asked: {question}
+
+Expected answer (ground truth):
+{expected}
+
+Assistant response:
+{response}
+
+Evaluate whether the assistant response is FACTUALLY CONSISTENT with the expected answer. Check:
+1. The response must contain the same KEY FACTS as the expected answer (model numbers, speeds, standards, feature names, specs).
+2. The response must NOT contradict any fact in the expected answer (e.g. wrong speed, wrong standard, wrong model).
+3. Minor wording differences, extra detail, or different phrasing are acceptable — only missing key facts or incorrect values count as failure.
+4. If the expected answer mentions a specific number (e.g. "5400 Mbps", "2 Gigabit LAN ports", "1 GHz"), the response must include that number or an equivalent.
+
+Reply with EXACTLY one line: PASS or FAIL
+Then on a new line give a one-sentence justification citing which key facts matched or were missing/wrong.

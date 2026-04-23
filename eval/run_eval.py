@@ -1,4 +1,4 @@
-"""MLflow eval runner for agent-forge passenger-rights KA.
+"""MLflow eval runner for AirTies WiFi Knowledge Assistant.
 
 Run 1 (baseline) and Run 2 (after guideline) comparison.
 Uses external FE workspace endpoint as LLM judge (no personal tokens).
@@ -29,8 +29,9 @@ EVAL_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(EVAL_DIR))
 
 from eval_dataset import eval_dataset
+from eval_dataset_gt import eval_dataset_gt
 from predict import predict
-from scorer import cites_regulation_precisely
+from scorer import answers_with_product_detail, factual_accuracy
 
 # ── MLflow setup ─────────────────────────────────────────────────────────────
 # MLFLOW_TRACKING_URI and MLFLOW_EXPERIMENT_ID are loaded from .env.local
@@ -50,7 +51,7 @@ def _print_results(results, run_label: str) -> None:
     print(f"  {run_label}")
     print(f"{'═' * 60}")
     df = results.result_df
-    score_col = "cites_regulation_precisely/value"
+    score_col = "answers_with_product_detail/value"
     if score_col in df.columns:
         questions = [d["inputs"]["query"] for d in eval_dataset]
         scores = df[score_col].tolist()
@@ -58,24 +59,24 @@ def _print_results(results, run_label: str) -> None:
             mark = "✓" if s and s >= 1.0 else "✗"
             print(f"  {mark} [{s}]  {_short(q)}")
         avg = sum(s or 0 for s in scores) / len(scores)
-        print(f"\n  avg cites_regulation_precisely: {avg:.2f}")
+        print(f"\n  avg answers_with_product_detail: {avg:.2f}")
     else:
         print("  (score column not found — check MLflow UI)")
         print("  columns:", list(df.columns))
 
 
 def run1() -> None:
-    """Baseline — loose instructions, no citation guidance."""
-    print("\n▶ RUN 1 — loose instructions (no citation guidance)")
-    with mlflow.start_run(run_name="run1_loose"):
+    """Baseline — default KA instructions."""
+    print("\n▶ RUN 1 — baseline (default KA instructions)")
+    with mlflow.start_run(run_name="run1_baseline"):
         results = mlflow.genai.evaluate(
             data=eval_dataset,
             predict_fn=predict,
-            scorers=[cites_regulation_precisely],
+            scorers=[answers_with_product_detail],
         )
-    _print_results(results, "RUN 1 — loose")
+    _print_results(results, "RUN 1 — baseline")
 
-    score_col = "cites_regulation_precisely/value"
+    score_col = "answers_with_product_detail/value"
     df = results.result_df
     if score_col in df.columns:
         questions = [d["inputs"]["query"] for d in eval_dataset]
@@ -84,24 +85,80 @@ def run1() -> None:
         if failed:
             print(f"\n  {len(failed)} question(s) scored 0 — review responses in MLflow UI")
 
-    print("\n  Run 1 complete. Review scores above, then add the guideline and re-run with --run2")
+    print("\n  Run 1 complete. Review scores above, then add guideline and re-run with --run2")
 
 
 def run2() -> None:
-    """After adding citation guideline to KA."""
-    print("\n▶ RUN 2 — strict instructions (explicit citation requirements)")
-    with mlflow.start_run(run_name="run2_strict"):
+    """After adding product-detail guideline to KA."""
+    print("\n▶ RUN 2 — with guideline (explicit product detail requirements)")
+    with mlflow.start_run(run_name="run2_with_guideline"):
         results = mlflow.genai.evaluate(
             data=eval_dataset,
             predict_fn=predict,
-            scorers=[cites_regulation_precisely],
+            scorers=[answers_with_product_detail],
         )
     _print_results(results, "RUN 2 — with guideline")
 
 
+def _print_gt_results(results, run_label: str) -> None:
+    print(f"\n{'═' * 70}")
+    print(f"  {run_label}")
+    print(f"{'═' * 70}")
+    df = results.result_df
+    detail_col = "answers_with_product_detail/value"
+    factual_col = "factual_accuracy/value"
+    questions = [d["inputs"]["query"] for d in eval_dataset_gt]
+
+    has_detail = detail_col in df.columns
+    has_factual = factual_col in df.columns
+
+    if not has_detail and not has_factual:
+        print("  (score columns not found — check MLflow UI)")
+        print("  columns:", list(df.columns))
+        return
+
+    detail_scores = df[detail_col].tolist() if has_detail else [None] * len(questions)
+    factual_scores = df[factual_col].tolist() if has_factual else [None] * len(questions)
+
+    for q, d, f in zip(questions, detail_scores, factual_scores):
+        d_mark = "✓" if d and d >= 1.0 else "✗"
+        f_mark = "✓" if f and f >= 1.0 else "✗"
+        print(f"  detail={d_mark} factual={f_mark}  {_short(q)}")
+
+    if has_detail:
+        avg_d = sum(s or 0 for s in detail_scores) / len(detail_scores)
+        print(f"\n  avg answers_with_product_detail: {avg_d:.2f}")
+    if has_factual:
+        avg_f = sum(s or 0 for s in factual_scores) / len(factual_scores)
+        print(f"  avg factual_accuracy:            {avg_f:.2f}")
+
+
+def run_gt() -> None:
+    """Ground-truth evaluation — factual accuracy against expected answers."""
+    print("\n▶ GROUND-TRUTH EVAL — factual accuracy against reference answers")
+    with mlflow.start_run(run_name="run_gt_factual"):
+        results = mlflow.genai.evaluate(
+            data=eval_dataset_gt,
+            predict_fn=predict,
+            scorers=[answers_with_product_detail, factual_accuracy],
+        )
+    _print_gt_results(results, "GROUND-TRUTH EVAL")
+
+    factual_col = "factual_accuracy/value"
+    df = results.result_df
+    if factual_col in df.columns:
+        questions = [d["inputs"]["query"] for d in eval_dataset_gt]
+        scores = df[factual_col].tolist()
+        failed = [(q, s) for q, s in zip(questions, scores) if not s or s < 1.0]
+        if failed:
+            print(f"\n  {len(failed)} question(s) failed factual accuracy — review in MLflow UI")
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
-    if "--run2" in args:
+    if "--gt" in args:
+        run_gt()
+    elif "--run2" in args:
         run2()
     else:
         run1()

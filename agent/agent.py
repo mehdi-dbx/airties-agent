@@ -1,3 +1,6 @@
+from langchain_core.tools.base import BaseTool
+
+
 import os
 import re
 from pathlib import Path
@@ -15,15 +18,13 @@ from mlflow.types.responses import (
     to_chat_completions_input,
 )
 
+from agent.context_management import maybe_summarize_messages
 from agent.genie_capture import wrap_for_genie_capture
 from agent.utils import (
     get_databricks_host_from_env,
     process_agent_astream_events,
 )
-from tools.query_checkin_metrics import query_checkin_metrics
-from tools.query_flights_at_risk import query_flights_at_risk
-from tools.query_passengers_ka import query_passengers_ka
-from tools.update_flight_risk import update_flight_risk
+from tools.query_airties_ka import query_airties_ka
 
 # New same-domain tools: append to tools in init_agent and implement under tools/<name>/
 mlflow.langchain.autolog()
@@ -34,11 +35,11 @@ sp_workspace_client = WorkspaceClient()
 def init_mcp_client(workspace_client: WorkspaceClient) -> DatabricksMultiServerMCPClient:
     host_name = get_databricks_host_from_env()
     servers = []
-    genie_checkin_id = os.environ.get("PROJECT_GENIE_CHECKIN", "").strip()
+    genie_checkin_id = os.environ.get("PROJECT_GENIE_ROOM", "").strip()
     if genie_checkin_id:
         servers.append(
             DatabricksMCPServer(
-                name="genie-checkin",
+                name="genie-airties",
                 url=f"{host_name}/api/2.0/mcp/genie/{genie_checkin_id}",
                 workspace_client=workspace_client,
             ),
@@ -57,12 +58,7 @@ async def init_agent(workspace_client: Optional[WorkspaceClient] = None):
     mcp_client = init_mcp_client(workspace_client or sp_workspace_client)
     mcp_tools = await mcp_client.get_tools()
     wrapped_tools = [wrap_for_genie_capture(t) for t in mcp_tools]
-    tools = list(wrapped_tools) + [
-        query_flights_at_risk,
-        update_flight_risk,
-        query_checkin_metrics,
-        query_passengers_ka,
-    ]
+    tools = list[BaseTool](wrapped_tools) + [query_airties_ka]
     endpoint = os.environ.get("AGENT_MODEL_ENDPOINT", "").strip()
     databricks_host = os.environ.get("DATABRICKS_HOST", "").strip().rstrip("/")
 
@@ -82,7 +78,7 @@ async def init_agent(workspace_client: Optional[WorkspaceClient] = None):
         if host == databricks_host:
             # Same workspace — use local auth, no remote client needed
             llm = ChatDatabricks(endpoint=name)
-            return create_agent(tools=tools, model=llm), True
+            return create_agent(tools=tools, model=llm), llm, True
 
         # Cross-workspace endpoint: build a WorkspaceClient for the remote host
         token = os.environ.get("AGENT_MODEL_TOKEN", "").strip()
@@ -113,11 +109,11 @@ async def init_agent(workspace_client: Optional[WorkspaceClient] = None):
         finally:
             os.environ.update(_saved)
         llm = ChatDatabricks(endpoint=name, workspace_client=remote_client)
-        return create_agent(tools=tools, model=llm), False
+        return create_agent(tools=tools, model=llm), llm, False
     else:
         # Local endpoint name — same workspace
         llm = ChatDatabricks(endpoint=endpoint)
-        return create_agent(tools=tools, model=llm), True
+        return create_agent(tools=tools, model=llm), llm, True
 
 
 @invoke()
@@ -140,8 +136,9 @@ def _load_system_prompt() -> str:
 
 
 async def _run_agent(request: ResponsesAgentRequest) -> AsyncGenerator[ResponsesAgentStreamEvent, None]:
-    agent, llm_supports_streaming = await init_agent()
+    agent, llm, llm_supports_streaming = await init_agent()
     user_messages = to_chat_completions_input([i.model_dump() for i in request.input])
+    user_messages = await maybe_summarize_messages(user_messages, llm)
     system_content = _load_system_prompt()
     messages = (
         {"messages": [{"role": "system", "content": system_content}] + user_messages}

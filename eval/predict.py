@@ -44,9 +44,9 @@ def _token() -> str:
 
 def _ka_url() -> str:
     host = os.environ.get("DATABRICKS_HOST", "").rstrip("/")
-    endpoint = os.environ.get("PROJECT_KA_PASSENGERS", "").strip()
+    endpoint = os.environ.get("PROJECT_KA_AIRTIES", "").strip()
     if not endpoint:
-        raise EnvironmentError("PROJECT_KA_PASSENGERS must be set in .env.local")
+        raise EnvironmentError("PROJECT_KA_AIRTIES must be set in .env.local")
     return f"{host}/serving-endpoints/{endpoint}/invocations"
 
 
@@ -58,9 +58,12 @@ def extract_text(response: dict) -> str:
     """
     try:
         raw_text = response["output"][0]["content"][0]["text"]
-        parsed = json.loads(raw_text)
-        return parsed.get("answer", raw_text)
-    except (KeyError, IndexError, TypeError, json.JSONDecodeError):
+        try:
+            parsed = json.loads(raw_text)
+            return parsed.get("answer", raw_text)
+        except (json.JSONDecodeError, TypeError):
+            return raw_text
+    except (KeyError, IndexError, TypeError):
         return ""
 
 

@@ -100,9 +100,16 @@ def execute_query(w: WorkspaceClient, wh_id: str, stmt: str) -> tuple[list[str],
 
 def format_query_result(columns: list[str], rows: list[list]) -> str:
     """Format (columns, rows) as a readable string for the agent."""
+    from agent.context_management import MAX_RESULT_ROWS
+
     if not columns and not rows:
         return "(no rows)"
     lines = [" | ".join(columns)]
-    for row in rows:
+    display_rows = rows[:MAX_RESULT_ROWS]
+    for row in display_rows:
         lines.append(" | ".join(str(v) if v is not None else "" for v in row))
+    if len(rows) > MAX_RESULT_ROWS:
+        lines.append(
+            f"\n... [{len(rows) - MAX_RESULT_ROWS} more rows omitted, {len(rows)} total]"
+        )
     return "\n".join(lines)

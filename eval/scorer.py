@@ -1,4 +1,4 @@
-"""Custom MLflow scorer: cites_regulation_precisely.
+"""Custom MLflow scorer: answers_with_product_detail.
 
 Uses the external FE workspace endpoint (databricks-claude-sonnet-4-6) as LLM judge.
 No personal Anthropic token consumed — uses AGENT_MODEL_ENDPOINT + AGENT_MODEL_TOKEN
@@ -37,21 +37,9 @@ _ENDPOINT_TOKEN = (
 if not _ENDPOINT_TOKEN:
     raise EnvironmentError("No auth token found — set AGENT_MODEL_TOKEN or DATABRICKS_TOKEN")
 
-_JUDGE_PROMPT = """\
-You are evaluating a response from an aviation passenger-rights knowledge assistant.
-
-Question asked: {question}
-
-Assistant response:
-{response}
-
-Evaluate whether the response cites regulation PRECISELY by checking for at least ONE of:
-- A specific article number from EC 261/2004 (e.g. "Article 7", "Article 9(1)(a)")
-- An exact compensation amount in euros (e.g. "€600", "€400", "€250")
-- A named legal standard or case (e.g. "Sturgeon judgment", "Montreal Convention")
-
-Reply with EXACTLY one line: PASS or FAIL
-Then on a new line give a one-sentence justification."""
+_PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
+_JUDGE_PROMPT = (_PROMPTS_DIR / "judges.prompt").read_text(encoding="utf-8").strip()
+_JUDGE_GT_PROMPT = (_PROMPTS_DIR / "judges_gt.prompt").read_text(encoding="utf-8").strip()
 
 
 def _call_judge(prompt: str) -> tuple[float, str]:
@@ -79,26 +67,53 @@ def _call_judge(prompt: str) -> tuple[float, str]:
 
 
 def _extract_response_text(outputs: dict) -> str:
-    """Pull the answer string from the KA output dict."""
+    """Pull the answer string from the KA output dict.
+
+    Handles two formats:
+    - JSON-wrapped: output[0].content[0].text is a JSON string with an "answer" key
+    - Plain text: output[0].content[0].text is the answer directly
+    """
     try:
         raw_text = outputs["output"][0]["content"][0]["text"]
-        parsed = json.loads(raw_text)
-        return parsed.get("answer", raw_text)
-    except (KeyError, IndexError, TypeError, json.JSONDecodeError):
+        try:
+            parsed = json.loads(raw_text)
+            return parsed.get("answer", raw_text)
+        except (json.JSONDecodeError, TypeError):
+            return raw_text
+    except (KeyError, IndexError, TypeError):
         return str(outputs)
 
 
-@scorer(name="cites_regulation_precisely")
-def cites_regulation_precisely(inputs: dict, outputs: dict) -> float:
-    """Score 1.0 if the response cites a specific article, amount in euros, or named standard."""
+@scorer(name="answers_with_product_detail")
+def answers_with_product_detail(inputs: dict, outputs: dict) -> float:
+    """Score 1.0 if the response contains specific AirTies product details."""
     question = inputs.get("query", "")
     response_text = _extract_response_text(outputs)
 
     if not response_text:
-        print("  [scorer] empty response → 0.0")
+        print("  [detail] empty response → 0.0")
         return 0.0
 
     prompt = _JUDGE_PROMPT.format(question=question, response=response_text[:3000])
     score, justification = _call_judge(prompt)
-    print(f"  [scorer] score={score} | {justification[:80]}")
+    print(f"  [detail] score={score} | {justification[:80]}")
+    return score
+
+
+@scorer(name="factual_accuracy")
+def factual_accuracy(inputs: dict, outputs: dict, expectations: dict) -> float:
+    """Score 1.0 if the response is factually consistent with the ground-truth answer."""
+    question = inputs.get("query", "")
+    expected = expectations.get("expected_response", "")
+    response_text = _extract_response_text(outputs)
+
+    if not response_text:
+        print("  [factual] empty response → 0.0")
+        return 0.0
+
+    prompt = _JUDGE_GT_PROMPT.format(
+        question=question, expected=expected, response=response_text[:3000]
+    )
+    score, justification = _call_judge(prompt)
+    print(f"  [factual] score={score} | {justification[:80]}")
     return score
