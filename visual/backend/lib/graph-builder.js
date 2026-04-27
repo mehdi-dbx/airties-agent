@@ -44,13 +44,14 @@ function buildGraph() {
       position: { x: 80, y: 300 },
       data: {
         kind: 'agent',
-        label: 'Agent',
+        label: 'Airties WiFi Agent',
         subtitle: 'LangGraph ResponsesAgent',
         sourceFile: 'agent/agent.py',
         meta: {
           framework: 'LangGraph',
           server: 'MLflow GenAI',
           port: '8000',
+          contextMgmt: 'summarization + truncation',
         },
       },
     },
@@ -72,117 +73,128 @@ function buildGraph() {
       },
     },
     {
-      id: 'tool-query',
+      id: 'tool-ka',
       type: 'tool',
       position: { x: 380, y: 220 },
       data: {
         kind: 'tool',
-        label: 'query_flights_at_risk',
-        subtitle: 'SQL read tool',
-        sourceFile: 'tools/query_flights_at_risk.py',
+        label: 'query_airties_ka',
+        subtitle: 'Knowledge Assistant tool',
+        sourceFile: 'tools/query_airties_ka.py',
         meta: {
-          params: 'zone, time_start, time_end',
-          returns: 'flight_number, departure_time',
-        },
-      },
-    },
-    {
-      id: 'tool-update',
-      type: 'tool',
-      position: { x: 380, y: 360 },
-      data: {
-        kind: 'tool',
-        label: 'update_flight_risk',
-        subtitle: 'SQL action tool',
-        sourceFile: 'tools/update_flight_risk.py',
-        meta: {
-          params: 'flight_number, at_risk (bool)',
-          sideEffect: 'triggers refresh_table event',
+          endpointEnvVar: 'PROJECT_KA_AIRTIES',
+          scope: 'WiFi troubleshooting, device specs, setup guides',
         },
       },
     },
     {
       id: 'genie',
       type: 'genie',
-      position: { x: 380, y: 500 },
+      position: { x: 380, y: 400 },
       data: {
         kind: 'genie',
-        label: 'Genie (Check-in)',
+        label: 'Genie (WiFi Ops)',
         subtitle: 'MCP-based Genie space',
         sourceFile: 'agent/agent.py',
         meta: {
           spaceIdEnvVar: 'PROJECT_GENIE_ROOM',
           mcpServerName: 'genie-airties',
           transport: 'DatabricksMultiServerMCPClient',
+          scope: 'WiFi events, speed tests, mesh nodes, client devices',
         },
       },
     },
 
-    // Column 2 — SQL assets
+    // Column 2 — KA endpoint
     {
-      id: 'data-func',
+      id: 'ka-endpoint',
       type: 'data',
-      position: { x: 700, y: 200 },
+      position: { x: 700, y: 220 },
       data: {
         kind: 'data',
-        label: 'flights_at_risk',
-        subtitle: 'SQL function',
+        label: 'Airties KA',
+        subtitle: 'Knowledge Assistant endpoint',
         dataVariant: 'function',
-        sourceFile: 'data/func/flights_at_risk.sql',
         meta: {
-          params: 'zone, time_start, time_end',
-          returns: 'flight_number, departure_time',
-        },
-      },
-    },
-    {
-      id: 'data-proc',
-      type: 'data',
-      position: { x: 700, y: 360 },
-      data: {
-        kind: 'data',
-        label: 'update_flight_risk',
-        subtitle: 'SQL procedure',
-        dataVariant: 'procedure',
-        sourceFile: 'data/proc/update_flight_risk.sql',
-        meta: {
-          params: 'flight_number, at_risk',
-          action: 'UPDATE delay_risk field',
+          type: 'Serving endpoint',
+          sources: 'AirTies product manuals (PDF)',
+          models: 'Air 4960, 4930, 4410, 4920',
         },
       },
     },
 
-    // Column 3 — Delta table
+    // Column 2 — Delta tables
     {
-      id: 'data-table',
+      id: 'data-wifi-events',
       type: 'data',
-      position: { x: 1020, y: 300 },
+      position: { x: 700, y: 380 },
       data: {
         kind: 'data',
-        label: 'flights',
-        subtitle: `${catalog}.${schemaName}.flights`,
+        label: 'wifi_events',
+        subtitle: `${catalog}.${schemaName}.wifi_events`,
         dataVariant: 'table',
+        sourceFile: 'data/init/create_wifi_events.sql',
         meta: {
-          catalog,
-          schema: schemaName,
-          table: 'flights',
-          format: 'Delta (CDF enabled)',
-          columns: 'flight_number, zone, departure_time, delay_risk, status',
+          columns: 'event_type, device_mac, severity, timestamp',
+        },
+      },
+    },
+    {
+      id: 'data-mesh-nodes',
+      type: 'data',
+      position: { x: 700, y: 500 },
+      data: {
+        kind: 'data',
+        label: 'mesh_nodes',
+        subtitle: `${catalog}.${schemaName}.mesh_nodes`,
+        dataVariant: 'table',
+        sourceFile: 'data/init/create_mesh_nodes.sql',
+        meta: {
+          columns: 'node_id, model, status, signal_strength, band',
+        },
+      },
+    },
+    {
+      id: 'data-client-devices',
+      type: 'data',
+      position: { x: 1020, y: 380 },
+      data: {
+        kind: 'data',
+        label: 'client_devices',
+        subtitle: `${catalog}.${schemaName}.client_devices`,
+        dataVariant: 'table',
+        sourceFile: 'data/init/create_client_devices.sql',
+        meta: {
+          columns: 'device_mac, device_name, connected_node, band, rssi',
+        },
+      },
+    },
+    {
+      id: 'data-speed-tests',
+      type: 'data',
+      position: { x: 1020, y: 500 },
+      data: {
+        kind: 'data',
+        label: 'speed_tests',
+        subtitle: `${catalog}.${schemaName}.speed_tests`,
+        dataVariant: 'table',
+        sourceFile: 'data/init/create_speed_tests.sql',
+        meta: {
+          columns: 'download_mbps, upload_mbps, latency_ms, node_id',
         },
       },
     },
   ]
 
   const edges = [
-    { id: 'e-agent-llm',      source: 'agent',       target: 'llm',         label: 'uses model' },
-    { id: 'e-agent-toolq',    source: 'agent',       target: 'tool-query',  label: 'has tool' },
-    { id: 'e-agent-toolu',    source: 'agent',       target: 'tool-update', label: 'has tool' },
-    { id: 'e-agent-genie',    source: 'agent',       target: 'genie',       label: 'has MCP tool' },
-    { id: 'e-toolq-func',     source: 'tool-query',  target: 'data-func',   label: 'calls' },
-    { id: 'e-toolu-proc',     source: 'tool-update', target: 'data-proc',   label: 'calls' },
-    { id: 'e-func-table',     source: 'data-func',   target: 'data-table',  label: 'reads',   animated: true },
-    { id: 'e-proc-table',     source: 'data-proc',   target: 'data-table',  label: 'writes',  animated: true },
-    { id: 'e-genie-table',    source: 'genie',       target: 'data-table',  label: 'queries', animated: true },
+    { id: 'e-agent-llm',       source: 'agent',     target: 'llm',               label: 'uses model' },
+    { id: 'e-agent-ka',        source: 'agent',     target: 'tool-ka',           label: 'has tool' },
+    { id: 'e-agent-genie',     source: 'agent',     target: 'genie',             label: 'has MCP tool' },
+    { id: 'e-ka-endpoint',     source: 'tool-ka',   target: 'ka-endpoint',       label: 'calls' },
+    { id: 'e-genie-wifi',      source: 'genie',     target: 'data-wifi-events',  label: 'queries', animated: true },
+    { id: 'e-genie-mesh',      source: 'genie',     target: 'data-mesh-nodes',   label: 'queries', animated: true },
+    { id: 'e-genie-clients',   source: 'genie',     target: 'data-client-devices', label: 'queries', animated: true },
+    { id: 'e-genie-speed',     source: 'genie',     target: 'data-speed-tests',  label: 'queries', animated: true },
   ]
 
   return {
